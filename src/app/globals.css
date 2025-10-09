@@ -5,3 +5,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Apply Inter font to body */
+body {
+  font-family: 'Inter', sans-serif;
+}
