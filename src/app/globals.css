@@ -1,0 +1,7 @@
+/* Imports the Inter font for a modern, professional look */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Includes Tailwind's base, components, and utility styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
