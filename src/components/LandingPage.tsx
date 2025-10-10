@@ -322,13 +322,21 @@ const Step6_ReviewAppeal = ({ data }: ReviewStepProps) => {
     );
 };
 
-const FormHeader = () => (
+const FormHeader = ({ onBackToHome }: { onBackToHome?: () => void }) => (
     <div className="text-center mb-10 flex flex-col items-center">
-        <LogoIcon />
-        <h1 className="mt-4 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 tracking-tight">
-            AmzAppeal Pro
-        </h1>
-        <p className="mt-1 text-md text-slate-600">Your AI-Powered Path to Reinstatement</p>
+        {onBackToHome && (
+            <div className="w-full mb-4">
+                <button
+                    onClick={onBackToHome}
+                    className="text-slate-600 hover:text-slate-800 font-medium text-sm flex items-center"
+                >
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Home
+                </button>
+            </div>
+        )}
     </div>
 );
 
@@ -352,7 +360,11 @@ const ProgressBar = ({ steps, currentStepIndex }: ProgressBarProps) => (
 
 
 // --- MAIN APP COMPONENT ---
-export default function LandingPage() {
+type LandingPageProps = {
+    onBackToHome?: () => void;
+};
+
+export default function LandingPage({ onBackToHome }: LandingPageProps) {
     const [currentStep, setCurrentStep] = React.useState(1);
     const [formData, setFormData] = React.useState<FormData>(initialFormData);
 
@@ -414,7 +426,7 @@ export default function LandingPage() {
            },
       */}
             <div className="w-full max-w-3xl my-8">
-                <FormHeader />
+                <FormHeader onBackToHome={onBackToHome} />
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-6 sm:p-10 transition-all duration-300">
                     <ProgressBar steps={stepsConfig.map(s => s.name)} currentStepIndex={currentStepConfigIndex} />
 
