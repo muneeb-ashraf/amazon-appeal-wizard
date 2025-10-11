@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import PasswordProtection from "../components/PasswordProtection";
 
 export const metadata: Metadata = {
   title: "AmzAppeal Pro",
@@ -13,7 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <PasswordProtection>
+          {children}
+        </PasswordProtection>
+      </body>
     </html>
   );
 }

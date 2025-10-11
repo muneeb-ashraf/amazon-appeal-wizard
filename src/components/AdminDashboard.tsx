@@ -433,7 +433,7 @@ export default function AdminDashboard() {
 
     const handleLogin = ({u: username, p: password}: {u: string, p: string}) => {
         // Dummy authentication logic. Replace with your actual auth logic.
-        if (username === 'admin@amazonappeal.ai' && password === '2DaMoon&!') {
+        if (username === 'admin@amazonappeal.ai' && password === '1DontForget2!') {
             setIsLoggedIn(true);
             setLoginError(null);
         } else {
