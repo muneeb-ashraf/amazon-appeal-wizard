@@ -110,11 +110,7 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8 transition-all duration-300">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="flex justify-center mb-4">
-                            <LogoIcon className="h-16 w-auto" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-slate-800 mb-2">AmzAppeal Pro</h1>
-                        <p className="text-slate-600 mb-6">Your AI-Powered Path to Reinstatement</p>
+                    
                         
                         <div className="flex items-center justify-center mb-6">
                             <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full shadow-lg">
