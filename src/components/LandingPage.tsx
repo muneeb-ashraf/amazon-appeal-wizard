@@ -14,9 +14,11 @@ interface FormData {
     otherIssueType: string;
     fullName: string;
     email: string;
+    amazonSellerId: string;
     businessAddress: string;
     suspensionReason: string;
     cause: string;
+    suspensionNotifications: File[];
     supportingDocuments: string[];
 }
 
@@ -83,6 +85,10 @@ const LockIcon = ({ className = "w-4 h-4" }: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
 );
 
+const UploadIcon = ({ className = "w-6 h-6" }: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>
+);
+
 const LogoIcon = ({ className = "h-10 w-auto" }: IconProps) => (
     <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="url(#paint0_linear_1_2)" />
@@ -102,9 +108,11 @@ const initialFormData: FormData = {
     otherIssueType: '',
     fullName: '',
     email: '',
+    amazonSellerId: '',
     businessAddress: '',
     suspensionReason: '',
     cause: '',
+    suspensionNotifications: [],
     supportingDocuments: [],
 };
 
@@ -198,6 +206,10 @@ const Step3_SuspensionDetails = ({ data, setData }: StepProps) => (
                     <StyledInput type="email" id="email" value={data.email} onChange={e => setData({ ...data, email: e.target.value })} placeholder="Email associated with Amazon account" />
                 </div>
                 <div>
+                    <label htmlFor="amazonSellerId" className="block text-sm font-semibold text-slate-700 mb-2">Amazon Seller ID</label>
+                    <StyledInput type="text" id="amazonSellerId" value={data.amazonSellerId} onChange={e => setData({ ...data, amazonSellerId: e.target.value })} placeholder="Your Amazon Seller Central ID" />
+                </div>
+                <div>
                     <label htmlFor="businessAddress" className="block text-sm font-semibold text-slate-700 mb-2">Business Address</label>
                     <StyledInput type="text" id="businessAddress" value={data.businessAddress} onChange={e => setData({ ...data, businessAddress: e.target.value })} placeholder="Your complete business address" />
                 </div>
@@ -212,6 +224,52 @@ const Step3_SuspensionDetails = ({ data, setData }: StepProps) => (
                 <div>
                     <label htmlFor="cause" className="block text-sm font-semibold text-slate-700 mb-2">What do you believe caused this issue?</label>
                     <IconTextarea id="cause" value={data.cause} onChange={e => setData({ ...data, cause: e.target.value })} rows={5} placeholder="Describe what you think led to the suspension." />
+                </div>
+                <div>
+                    <label htmlFor="suspensionNotifications" className="block text-sm font-semibold text-slate-700 mb-2">Upload Amazon Suspension Notifications</label>
+                    <p className="text-xs text-slate-500 mb-3">Please attach any suspension emails or notifications you received from Amazon (PDF, PNG, JPG)</p>
+                    <div className="relative">
+                        <input
+                            type="file"
+                            id="suspensionNotifications"
+                            multiple
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                setData({ ...data, suspensionNotifications: [...data.suspensionNotifications, ...files] });
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50 hover:bg-indigo-50/30">
+                            <UploadIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                            <p className="text-slate-600 font-medium mb-2">Click to upload or drag and drop</p>
+                            <p className="text-xs text-slate-500">PDF, PNG, JPG files up to 10MB each</p>
+                        </div>
+                    </div>
+                    {data.suspensionNotifications.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                            <p className="text-sm font-medium text-slate-700">Selected files:</p>
+                            {data.suspensionNotifications.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                                    <div className="flex items-center">
+                                        <UploadIcon className="w-4 h-4 text-indigo-600 mr-2" />
+                                        <span className="text-sm text-slate-700 truncate">{file.name}</span>
+                                        <span className="text-xs text-slate-500 ml-2">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newFiles = data.suspensionNotifications.filter((_, i) => i !== index);
+                                            setData({ ...data, suspensionNotifications: newFiles });
+                                        }}
+                                        className="text-red-500 hover:text-red-700 text-sm font-medium"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -346,12 +404,32 @@ const ProgressBar = ({ steps, currentStepIndex }: ProgressBarProps) => (
             {steps.map((step: string, index: number) => (
                 <React.Fragment key={step}>
                     <div className="flex flex-col items-center text-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${index <= currentStepIndex ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>
-                            {index < currentStepIndex ? <CheckCircleIcon className="w-6 h-6" /> : (index + 1)}
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-500 transform ${
+                                index <= currentStepIndex
+                                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-xl scale-110'
+                                    : 'bg-slate-200 text-slate-500 scale-100'
+                            }`}
+                        >
+                            <span className="text-lg font-extrabold font-sans">
+                                {index < currentStepIndex ? <CheckCircleIcon className="w-6 h-6" /> : index + 1}
+                            </span>
                         </div>
-                        <p className={`mt-2 text-xs font-semibold transition-colors ${index <= currentStepIndex ? 'text-indigo-600' : 'text-slate-500'}`}>{step}</p>
+                        <p
+                            className={`mt-2 text-sm font-semibold transition-colors duration-300 ${
+                                index <= currentStepIndex ? 'text-indigo-600' : 'text-slate-500'
+                            }`}
+                        >
+                            {step}
+                        </p>
                     </div>
-                    {index < steps.length - 1 && <div className={`flex-1 h-1 mx-2 transition-colors ${index < currentStepIndex ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>}
+                    {index < steps.length - 1 && (
+                        <div
+                            className={`flex-1 h-1 mx-2 transition-all duration-500 ${
+                                index < currentStepIndex ? 'bg-indigo-500' : 'bg-slate-200'
+                            }`}
+                        ></div>
+                    )}
                 </React.Fragment>
             ))}
         </div>
