@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import HomePage from "../components/HomePage";
-import LandingPage from "../components/LandingPage";
+import UpdatedMultiStepForm from "../components/UpdatedMultiStepForm";
 
 export default function Home() {
   const [showLandingPage, setShowLandingPage] = useState(false);
@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <main>
       {showLandingPage ? (
-        <LandingPage onBackToHome={handleBackToHome} />
+        <UpdatedMultiStepForm onBackToHome={handleBackToHome} />
       ) : (
         <HomePage onStartAppeal={handleStartAppeal} />
       )}

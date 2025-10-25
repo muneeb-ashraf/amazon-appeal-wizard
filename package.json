@@ -6,22 +6,37 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "process-documents": "tsx scripts/process-all-documents.ts",
+    "validate-env": "tsx scripts/validate-env.ts",
+    "test-appeal": "tsx scripts/test-appeal-generation.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
+    "date-fns": "^3.0.6",
+    "dotenv": "^17.2.3",
+    "jspdf": "^2.5.1",
+    "mammoth": "^1.6.0",
+    "next": "14.2.4",
+    "openai": "^4.24.1",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.4"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "postcss": "^8",
+    "@types/uuid": "^9.0.7",
     "autoprefixer": "^10",
-    "tailwindcss": "^3.4.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.4"
+    "eslint-config-next": "14.2.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5"
   }
 }
