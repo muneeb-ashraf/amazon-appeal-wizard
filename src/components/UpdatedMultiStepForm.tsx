@@ -772,32 +772,67 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
         
         // Process appeal text
         doc.setFont('times', 'normal');
-        doc.setFontSize(11);
+        doc.setFontSize(12); // Increased from 11 for better readability
         
-        // Remove markdown and split into paragraphs
-        const cleanText = appealText.replace(/\*\*/g, '');
-        const paragraphs = cleanText.split('\n\n');
+        // Split into paragraphs but keep markdown for processing
+        const paragraphs = appealText.split('\n\n');
         
         paragraphs.forEach((para, index) => {
             if (!para.trim()) return;
             
-            // Check if it's a section header (starts with A., B., C., etc.)
-            const isSectionHeader = /^[A-Z]\.\s|^\d+\.\s/.test(para.trim());
+            // Check if it's a major section header (starts with A., B., C., etc. - usually all bold)
+            const isMajorSection = /^[A-Z]\.\s/.test(para.trim());
             
-            if (isSectionHeader) {
-                checkPageBreak(30);
-                yPosition += 10; // Extra space before section
+            // Check if it's a numbered list item (1., 2., 3., etc.)
+            const numberedListMatch = para.trim().match(/^(\d+\.\s+)(\*\*[^*]+\*\*:?\s*)([\s\S]*)/);
+            
+            if (numberedListMatch) {
+                // It's a numbered list with a bold title
+                checkPageBreak(40);
+                yPosition += 8; // Space before list item
+                
+                const [, number, boldTitle, description] = numberedListMatch;
+                const cleanTitle = boldTitle.replace(/\*\*/g, '').trim();
+                const cleanDescription = description.replace(/\*\*/g, '').trim();
+                
+                // Render number + bold title
+                doc.setFont('times', 'normal');
+                const numberWidth = doc.getTextWidth(number);
+                doc.text(number, margin, yPosition);
+                
                 doc.setFont('times', 'bold');
-                const lines = doc.splitTextToSize(para, contentWidth);
+                const titleLines = doc.splitTextToSize(cleanTitle, contentWidth - numberWidth - 5);
+                doc.text(titleLines, margin + numberWidth, yPosition);
+                yPosition += titleLines.length * 16; // Increased line height
+                
+                // Render description in normal font with better spacing
+                if (cleanDescription) {
+                    doc.setFont('times', 'normal');
+                    const descLines = doc.splitTextToSize(cleanDescription, contentWidth - numberWidth - 5);
+                    doc.text(descLines, margin + numberWidth, yPosition);
+                    yPosition += descLines.length * 16 + 12; // Increased spacing
+                } else {
+                    yPosition += 12;
+                }
+            } else if (isMajorSection) {
+                // Major section header (A., B., C.) - entire line bold
+                checkPageBreak(40);
+                yPosition += 16; // Extra space before major section
+                doc.setFont('times', 'bold');
+                doc.setFontSize(13); // Slightly larger for section headers
+                const cleanPara = para.replace(/\*\*/g, '');
+                const lines = doc.splitTextToSize(cleanPara, contentWidth);
                 doc.text(lines, margin, yPosition);
-                yPosition += lines.length * 16;
+                yPosition += lines.length * 18 + 8; // More spacing after headers
+                doc.setFontSize(12); // Reset to normal size
                 doc.setFont('times', 'normal');
             } else {
-                // Regular paragraph
-                checkPageBreak(20);
-                const lines = doc.splitTextToSize(para, contentWidth);
+                // Regular paragraph - handle bold text inline
+                checkPageBreak(30);
+                const cleanPara = para.replace(/\*\*/g, '');
+                const lines = doc.splitTextToSize(cleanPara, contentWidth);
                 doc.text(lines, margin, yPosition);
-                yPosition += lines.length * 14 + 8; // Line height + paragraph spacing
+                yPosition += lines.length * 16 + 10; // Better line and paragraph spacing
             }
         });
         
@@ -806,21 +841,35 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
             
-            // Add footer on each page
+            // Add footer on each page - positioned from bottom with proper spacing
             doc.setFontSize(10);
             doc.setFont('times', 'normal');
-            const footerY = pageHeight - 50;
-            doc.text(data.fullName, margin, footerY);
-            doc.text(data.storeName, margin, footerY + 14);
-            if (data.sellerId) {
-                doc.text(`Merchant Token ID: ${data.sellerId}`, margin, footerY + 28);
-            }
-            doc.text(data.email, margin, footerY + 42);
             
-            // Add page number
+            // Start footer 72pt (1 inch) from bottom
+            const footerStartY = pageHeight - 72;
+            let currentFooterY = footerStartY;
+            
+            // Line 1: Name
+            doc.text(data.fullName, margin, currentFooterY);
+            currentFooterY += 12; // Move down 12pt
+            
+            // Line 2: Store Name
+            doc.text(data.storeName, margin, currentFooterY);
+            currentFooterY += 12; // Move down 12pt
+            
+            // Line 3: Merchant Token (if exists)
+            if (data.sellerId) {
+                doc.text(`Merchant Token ID: ${data.sellerId}`, margin, currentFooterY);
+                currentFooterY += 12; // Move down 12pt
+            }
+            
+            // Line 4: Email
+            doc.text(data.email, margin, currentFooterY);
+            
+            // Add page number at very bottom
             doc.setFontSize(9);
             doc.setFont('times', 'normal');
-            doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 20, { align: 'center' });
+            doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
         }
         
         // Save the PDF
@@ -838,8 +887,11 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
             let formatted = para.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*([^*\n]+?)\*/g, '<strong>$1</strong>');
             
-            // Check if it's a section header (A., B., C., or numbered sections)
-            const isSectionHeader = /^[A-Z]\.\s|^\d+\.\s/.test(para.trim());
+            // Check if it's a major section header (A., B., C.)
+            const isMajorSection = /^[A-Z]\.\s/.test(para.trim());
+            
+            // Check if it's a numbered list item (1., 2., 3., etc.)
+            const isNumberedList = /^\d+\.\s/.test(para.trim());
             
             // Check if it's a bullet point line
             const isBullet = /^[•\-\*]\s/.test(para.trim());
@@ -847,25 +899,28 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
             // Check if it's a nested bullet (indented)
             const isNestedBullet = /^\s{2,}[•\-\*]\s/.test(para);
             
-            if (isSectionHeader) {
-                return `<div key="${idx}" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 600; font-size: 1.05rem; color: #1e293b;">${formatted}</div>`;
+            if (isMajorSection) {
+                return `<div key="${idx}" style="margin-top: 1.75rem; margin-bottom: 1.25rem; font-weight: 700; font-size: 1.1rem; color: #0f172a; line-height: 1.6;">${formatted}</div>`;
+            } else if (isNumberedList) {
+                // Numbered list items - give them special formatting
+                return `<div key="${idx}" style="margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 1rem; line-height: 1.9; color: #1e293b;">${formatted}</div>`;
             } else if (isNestedBullet) {
                 // Nested bullet with more indentation
                 const content = formatted.replace(/^\s+[•\-\*]\s/, '');
                 return `<div key="${idx}" style="margin-left: 2.5rem; margin-bottom: 0.5rem; padding-left: 1rem; position: relative;">
                     <span style="position: absolute; left: 0; color: #64748b;">◦</span>
-                    <span style="line-height: 1.7; color: #334155;">${content}</span>
+                    <span style="line-height: 1.9; color: #334155;">${content}</span>
                 </div>`;
             } else if (isBullet) {
                 // Regular bullet point
                 const content = formatted.replace(/^[•\-\*]\s/, '');
                 return `<div key="${idx}" style="margin-left: 1.5rem; margin-bottom: 0.5rem; padding-left: 1rem; position: relative;">
                     <span style="position: absolute; left: 0; color: #64748b;">•</span>
-                    <span style="line-height: 1.7; color: #334155;">${content}</span>
+                    <span style="line-height: 1.9; color: #334155;">${content}</span>
                 </div>`;
             } else {
-                // Regular paragraph
-                return `<p key="${idx}" style="margin-bottom: 1rem; line-height: 1.8; color: #1e293b; text-align: justify;">${formatted}</p>`;
+                // Regular paragraph with improved readability
+                return `<p key="${idx}" style="margin-bottom: 1.25rem; line-height: 1.9; color: #1e293b; text-align: justify;">${formatted}</p>`;
             }
         }).join('');
     };
