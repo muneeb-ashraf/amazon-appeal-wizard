@@ -5,9 +5,16 @@ frontend:
       commands:
         - node --version
         - npm --version
+        - echo "Installing dependencies..."
         - npm ci
+        - echo "Verifying TypeScript configuration..."
+        - cat tsconfig.json
+        - echo "Checking if source files exist..."
+        - ls -la src/lib/
+        - ls -la src/components/icons/
     build:
       commands:
+        - echo "Starting build..."
         - npm run build
   artifacts:
     baseDirectory: .next
