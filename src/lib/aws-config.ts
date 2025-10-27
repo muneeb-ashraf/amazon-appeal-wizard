@@ -9,16 +9,35 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 // Helper to get AWS config (lazy evaluation for scripts)
 const getAWSConfig = () => {
   const config: any = {
-    region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+    region: process.env.NEXT_PUBLIC_AWS_REGION || process.env.AWS_REGION || 'us-east-1',
   };
   
-  // Only add explicit credentials if they are provided (for local development)
-  // In production (AWS Amplify), IAM roles will be used automatically
-  if (process.env.NEXT_AWS_ACCESS_KEY_ID && process.env.NEXT_AWS_SECRET_ACCESS_KEY) {
+  // Try multiple environment variable naming conventions
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID || 
+                      process.env.NEXT_AWS_ACCESS_KEY_ID || 
+                      process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID;
+  
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || 
+                          process.env.NEXT_AWS_SECRET_ACCESS_KEY || 
+                          process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY;
+  
+  // Debug logging (will be visible in Amplify logs)
+  console.log('🔑 AWS Config Debug:');
+  console.log('- Region:', config.region);
+  console.log('- Access Key available:', !!accessKeyId);
+  console.log('- Secret Key available:', !!secretAccessKey);
+  console.log('- Environment:', process.env.NODE_ENV);
+  
+  // Only add explicit credentials if they are provided
+  // In production (AWS Amplify), IAM roles will be used automatically if no credentials are set
+  if (accessKeyId && secretAccessKey) {
     config.credentials = {
-      accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY,
+      accessKeyId,
+      secretAccessKey,
     };
+    console.log('✅ Using explicit credentials');
+  } else {
+    console.log('⚠️ No explicit credentials found, will attempt to use IAM role');
   }
   
   return config;
