@@ -7,13 +7,22 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 // Helper to get AWS config (lazy evaluation for scripts)
-const getAWSConfig = () => ({
-  region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+const getAWSConfig = () => {
+  const config: any = {
+    region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
+  };
+  
+  // Only add explicit credentials if they are provided (for local development)
+  // In production (AWS Amplify), IAM roles will be used automatically
+  if (process.env.NEXT_AWS_ACCESS_KEY_ID && process.env.NEXT_AWS_SECRET_ACCESS_KEY) {
+    config.credentials = {
+      accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY,
+    };
+  }
+  
+  return config;
+};
 
 // S3 Client - lazy initialization
 let _s3Client: S3Client | null = null;
