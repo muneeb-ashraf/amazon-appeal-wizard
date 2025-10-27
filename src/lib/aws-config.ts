@@ -13,6 +13,7 @@ const getAWSConfig = () => {
   };
   
   // Try multiple environment variable naming conventions
+  // Priority: AWS_* (standard) > NEXT_AWS_* (custom) > NEXT_PUBLIC_AWS_* (exposed to client)
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID || 
                       process.env.NEXT_AWS_ACCESS_KEY_ID || 
                       process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID;
@@ -24,7 +25,8 @@ const getAWSConfig = () => {
   // Debug logging (will be visible in Amplify logs)
   console.log('🔑 AWS Config Debug:');
   console.log('- Region:', config.region);
-  console.log('- Access Key available:', !!accessKeyId);
+  console.log('- Access Key ID available:', !!accessKeyId);
+  console.log('- Access Key ID prefix:', accessKeyId ? accessKeyId.substring(0, 8) + '...' : 'none');
   console.log('- Secret Key available:', !!secretAccessKey);
   console.log('- Environment:', process.env.NODE_ENV);
   
@@ -35,9 +37,9 @@ const getAWSConfig = () => {
       accessKeyId,
       secretAccessKey,
     };
-    console.log('✅ Using explicit credentials');
+    console.log('✅ Using explicit credentials (AWS SDK v3 format)');
   } else {
-    console.log('⚠️ No explicit credentials found, will attempt to use IAM role');
+    console.log('⚠️ No explicit credentials found, will attempt to use IAM role or default credential chain');
   }
   
   return config;

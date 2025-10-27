@@ -10,6 +10,11 @@ import { PutCommand, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { dynamoDbClient, APPEALS_TABLE, DOCUMENTS_TABLE } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
 
+// Debug: Log available environment variables (only keys, not values for security)
+console.log('🔍 Environment Variables Debug:');
+console.log('Available AWS env vars:', Object.keys(process.env).filter(k => k.includes('AWS')));
+console.log('Available NEXT env vars:', Object.keys(process.env).filter(k => k.includes('NEXT')));
+
 // All 38 template documents stored in S3
 const TEMPLATE_DOCUMENTS = [
   'documents/Bianca Boersma Appeal - rev2.docx',
