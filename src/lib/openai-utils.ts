@@ -193,13 +193,15 @@ Study these templates exhaustively and create a new appeal that matches their de
     const userMessage = buildUserMessageFromFormData(formData);
 
     const response = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4o', // Using faster gpt-4o instead of gpt-4-turbo-preview
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
       ],
       temperature: 0.85,
-      max_tokens: 4000,
+      max_tokens: 3500, // Slightly reduced for faster response
+    }, {
+      timeout: 25000, // 25 second timeout (before Amplify's 30s limit)
     });
 
     return response.choices[0]?.message?.content || '';

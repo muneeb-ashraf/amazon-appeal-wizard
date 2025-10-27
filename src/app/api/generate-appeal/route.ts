@@ -10,6 +10,10 @@ import { PutCommand, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { dynamoDbClient, APPEALS_TABLE, DOCUMENTS_TABLE } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
 
+// Route configuration for extended timeout
+export const maxDuration = 30; // Maximum allowed on Amplify (seconds)
+export const dynamic = 'force-dynamic'; // Disable caching for this route
+
 // Debug: Log available environment variables (only keys, not values for security)
 console.log('🔍 Environment Variables Debug:');
 console.log('Available AWS env vars:', Object.keys(process.env).filter(k => k.includes('AWS')));
