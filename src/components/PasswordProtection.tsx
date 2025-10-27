@@ -8,16 +8,11 @@ type IconProps = {
 
 // --- SVG ICONS (matching app style) ---
 const LogoIcon = ({ className = "h-10 w-auto" }: IconProps) => (
-    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="url(#paint0_linear_1_2)" />
-        <path d="M13 29V11L22 16L27 13.5V23.5L22 26L13 29Z" fill="white" />
-        <defs>
-            <linearGradient id="paint0_linear_1_2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#2563EB" />
-                <stop offset="1" stopColor="#4F46E5" />
-            </linearGradient>
-        </defs>
-    </svg>
+    <img 
+        src="/app_logo.png" 
+        alt="App Logo" 
+        className={className}
+    />
 );
 
 const LockIcon = ({ className = "w-4 h-4" }: IconProps) => (
@@ -107,11 +102,16 @@ export default function PasswordProtection({ children }: PasswordProtectionProps
                    },
             */}
             <div className="w-full max-w-md">
+                {/* Logo Section */}
+                <div className="flex justify-center mb-6">
+                    <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
+                        <LogoIcon className="h-16 w-auto" />
+                    </div>
+                </div>
+                
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/80 p-8 transition-all duration-300">
                     {/* Header */}
                     <div className="text-center mb-8">
-                    
-                        
                         <div className="flex items-center justify-center mb-6">
                             <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full shadow-lg">
                                 <LockIcon className="w-8 h-8 text-white" />

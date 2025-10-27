@@ -3,7 +3,7 @@ import "./globals.css";
 import PasswordProtection from "../components/PasswordProtection";
 
 export const metadata: Metadata = {
-  title: "AmzAppeal Pro",
+  title: "AMZ Appeal AI",
   description: "Your AI-Powered Path to Reinstatement",
 };
 

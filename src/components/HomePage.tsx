@@ -12,16 +12,11 @@ type HomePageProps = {
 
 // --- SVG ICONS ---
 const LogoIcon = ({ className = "h-16 w-auto" }: IconProps) => (
-    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="url(#paint0_linear_1_2)" />
-        <path d="M13 29V11L22 16L27 13.5V23.5L22 26L13 29Z" fill="white" />
-        <defs>
-            <linearGradient id="paint0_linear_1_2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#2563EB" />
-                <stop offset="1" stopColor="#4F46E5" />
-            </linearGradient>
-        </defs>
-    </svg>
+    <img 
+        src="/app_logo.png" 
+        alt="App Logo" 
+        className={className}
+    />
 );
 
 const CheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
@@ -49,16 +44,15 @@ export default function HomePage({ onStartAppeal }: HomePageProps) {
 
             {/* Main Content */}
             <div className="max-w-6xl mx-auto px-4 py-12">
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="grid lg:grid-cols-2 gap-8 items-stretch">
                     {/* Left Column - Main Content */}
-                    <div className="space-y-8">
+                    <div className="flex flex-col space-y-6">
                         {/* Logo and Title */}
                         <div className="space-y-6">
-                            <div className="flex items-center space-x-4">
-                                <LogoIcon className="h-12 w-auto" />
-                                <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
-                                    AmzAppeal Pro
-                                </h1>
+                            <div className="flex items-center justify-center lg:justify-start">
+                                <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
+                                    <LogoIcon className="h-20 w-auto" />
+                                </div>
                             </div>
                             <div>
                                 <h1 className="text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
@@ -89,25 +83,24 @@ export default function HomePage({ onStartAppeal }: HomePageProps) {
                         </div>
 
                         {/* CTA Button */}
-                        <div className="space-y-4">
+                        <div className="mt-auto">
                             <button
                                 onClick={onStartAppeal}
-                                className="w-full lg:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                             >
                                 Start Your Appeal with Our Wizard
                             </button>
                         </div>
-
-
                     </div>
 
                     {/* Right Column - Benefits */}
-                    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-                        <div className="mb-8">
+                    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 flex flex-col">
+                        <div className="mb-6">
                             <h2 className="text-2xl font-bold text-slate-900 mb-2">Why Choose AMZ Appeal.AI?</h2>
+                            <p className="text-sm text-slate-500">Professional AI-powered appeal generation</p>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-5 flex-1">
                             {[
                                 {
                                     title: "AI-generated appeals tailored to your specific suspension type",
@@ -130,15 +123,15 @@ export default function HomePage({ onStartAppeal }: HomePageProps) {
                                     description: "Get instant help and answers to your questions anytime."
                                 }
                             ].map((benefit, index) => (
-                                <div key={index} className="flex items-start space-x-4">
-                                    <div className="flex-shrink-0 mt-1">
-                                        <div className="bg-green-100 rounded-full p-1">
+                                <div key={index} className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0 mt-0.5">
+                                        <div className="bg-green-100 rounded-full p-1.5">
                                             <CheckIcon className="w-4 h-4 text-green-600" />
                                         </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-slate-900 mb-1">{benefit.title}</h3>
-                                        <p className="text-sm text-slate-600">{benefit.description}</p>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1">{benefit.title}</h3>
+                                        <p className="text-xs text-slate-600 leading-relaxed">{benefit.description}</p>
                                     </div>
                                 </div>
                             ))}
