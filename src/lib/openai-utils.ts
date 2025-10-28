@@ -112,7 +112,7 @@ export async function generateAppealLetter(
 }
 
 /**
- * Generate appeal letter with streaming support
+ * Generate appeal letter with streaming support and chunked generation
  */
 export async function generateAppealLetterWithStreaming(
   formData: AppealFormData,
@@ -123,112 +123,111 @@ export async function generateAppealLetterWithStreaming(
     // Create context from relevant documents
     const context = relevantDocuments.join('\n\n---TEMPLATE DOCUMENT---\n\n');
 
-    // Build the system prompt
-    const systemPrompt = `You are an expert Amazon seller appeal writer with deep knowledge of Amazon's policies and successful appeal strategies. 
-
-You have access to successful Amazon appeal template documents below. These templates represent REAL, APPROVED appeals with diverse structures, formats, and approaches based on different violation types and scenarios.
-
-CRITICAL INSTRUCTIONS - ANALYZE AND REPLICATE ALL TEMPLATE ELEMENTS:
-
-1. OPENING & ADDRESSING:
-   - Study how templates open (e.g., "Dear Seller Performance Team", "Dear Mr. Bezos", "Dear Amazon Relay Team")
-   - Note if they include immediate context about suspension/issue in the first paragraph
-   - Some include case numbers, ASINs, or specific violation references right at the start
-
-2. ROOT CAUSE SECTION - BE COMPREHENSIVE:
-   - Templates often provide DETAILED narratives, not just bullet points
-   - Include specific examples (e.g., "customer complained that book had highlighting", "products sourced from book fairs")
-   - Reference specific violations with dates, ASINs, case numbers when applicable
-   - Explain the investigation process (e.g., "I studied my communications with customers to better understand...")
-   - Some include sub-sections explaining why Amazon's interpretation may be incorrect
-
-3. ACTIONS TAKEN - BE SPECIFIC:
-   - Templates list CONCRETE actions already completed (past tense)
-   - Include specifics like "I have deleted ASINs X, Y, Z from inventory"
-   - Reference documentation attached (e.g., "I have attached my government-issued photo ID", "We have attached our invoices")
-   - Some mention hiring attorneys, terminating suppliers, or processing refunds
-   - Include policy research done (e.g., "I have carefully read Amazon's anti-counterfeiting policy at [URL]")
-
-4. PREVENTIVE MEASURES - MATCH TEMPLATE DEPTH:
-   - Templates often have 10-15+ detailed preventive steps, organized by category
-   - Use categorical organization (e.g., "Sourcing and Inventory Intake Quality Control:", "Listings Quality Control:")
-   - Include multi-step verification processes with numbered sub-steps
-   - Reference specific tools (e.g., "We have purchased the 'Check Permission' program")
-   - Mention team roles (e.g., "We have appointed a qualified Quality Control supervisor")
-   - Include monitoring commitments (e.g., "I will respond to all inquiries within 24 hours")
-   - Reference specific metrics or performance standards when applicable
-
-5. DOCUMENTATION REFERENCES:
-   - Explicitly mention all supporting documents being attached
-   - List them specifically (e.g., "I have attached: 1. Utility bill, 2. Bank statement, 3. Government ID")
-   - Reference specific certifications, test reports, or legal documents by name
-
-6. LEGAL & POLICY CITATIONS:
-   - Include specific policy URLs when templates show them
-   - Reference specific policy sections (e.g., "Section I.E.2.b of the Amazon Relay Program Policies")
-   - Mention specific regulations or standards (e.g., "ASTM F963-17", "CPSIA Section 108")
-   - Include patent numbers, trademark info, or legal case details when relevant
-
-7. SUPPLIER/MANUFACTURER DETAILS:
-   - When discussing sourcing, include complete supplier information as templates do
-   - Full business names, addresses, contact information
-   - Specific products or services from the supplier
-
-8. PERFORMANCE METRICS & STANDARDS:
-   - Some templates include specific performance metrics they'll maintain
-   - Reference compliance standards, safety ratings, or quality benchmarks
-
-9. TONE & LANGUAGE:
-   - Professional but personal ("I" or "We")
-   - Takes full responsibility without making excuses
-   - Shows understanding of Amazon's concerns
-   - Demonstrates commitment to long-term compliance
-   - Respectful and solution-focused
-
-10. CLOSING:
-    - Professional closing statement expressing commitment
-    - Full signature block with name, business name, email, seller ID/merchant token
-    - Some include additional contact information
-
-DO NOT create generic appeals. STUDY the templates thoroughly and replicate their comprehensive, detailed, case-specific approach. If a template is 5 pages long with 15 preventive measures, yours should be similarly comprehensive.
-
-Below are the most relevant template documents for this type of appeal:
-
----TEMPLATE DOCUMENTS START---
-${context}
----TEMPLATE DOCUMENTS END---
-
-Study these templates exhaustively and create a new appeal that matches their depth, specificity, and structure while being completely customized to the seller's specific case. Include all relevant elements you see in similar templates (documentation lists, supplier details, policy citations, multi-step processes, etc.).`;
-
     // Build user message from form data
     const userMessage = buildUserMessageFromFormData(formData);
 
-    const stream = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o', // Using faster gpt-4o instead of gpt-4-turbo-preview
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-      temperature: 0.85,
-      max_tokens: 3500,
-      stream: true, // Enable streaming
-    }, {
-      timeout: 25000, // 25 second timeout (before Amplify's 30s limit)
-    });
+    // Generate appeal in 4 chunks for better timeout handling
+    const sections = [
+      {
+        name: 'Opening & Introduction',
+        prompt: `Generate ONLY the opening section of the appeal letter (greeting, introduction, and immediate context about the issue). Include:
+- Professional greeting (Dear Seller Performance/Amazon Team/etc.)
+- Brief introduction identifying the seller
+- Clear statement of the issue/suspension
+- Reference to any case numbers or ASINs
+Keep this section concise (2-3 paragraphs).`
+      },
+      {
+        name: 'Root Cause Analysis',
+        prompt: `Generate ONLY the root cause section of the appeal. Include:
+- Detailed explanation of what caused the issue
+- Specific examples and timeline
+- Investigation process
+- Acknowledgment of responsibility
+Make this comprehensive (3-4 paragraphs).`
+      },
+      {
+        name: 'Corrective Actions',
+        prompt: `Generate ONLY the corrective actions section. Include:
+- Specific actions already taken (past tense)
+- Documentation being provided
+- Systems or processes changed
+- People involved or hired
+Make this detailed with concrete examples (3-4 paragraphs).`
+      },
+      {
+        name: 'Prevention & Closing',
+        prompt: `Generate ONLY the preventive measures and closing section. Include:
+- 10-15 detailed preventive steps (organized by category)
+- Future monitoring commitments
+- Professional closing statement
+- Full signature block with contact information
+Make this very comprehensive (4-5 paragraphs plus bullet points).`
+      }
+    ];
 
-    let fullText = '';
-    
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
-        fullText += content;
-        if (onChunk) {
-          await onChunk(content, fullText.length);
+    let fullAppeal = '';
+    let totalLength = 0;
+
+    // Build base system prompt
+    const baseSystemPrompt = `You are an expert Amazon seller appeal writer with deep knowledge of Amazon's policies and successful appeal strategies.
+
+You have access to successful Amazon appeal template documents below. Study their style, depth, and structure.
+
+TEMPLATE DOCUMENTS:
+${context}
+
+USER INFORMATION:
+${userMessage}
+
+IMPORTANT: Generate ONLY the requested section. Match the professional tone and depth of the template documents.`;
+
+    // Generate each section sequentially
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      
+      console.log(`📝 Generating section ${i + 1}/4: ${section.name}`);
+
+      const stream = await getOpenAIClient().chat.completions.create({
+        model: 'gpt-4o-mini', // Fast model to stay under timeout
+        messages: [
+          { role: 'system', content: baseSystemPrompt },
+          { role: 'user', content: section.prompt },
+        ],
+        temperature: 0.85,
+        max_tokens: 800, // ~800 tokens per section = ~3200 total
+        stream: true,
+      }, {
+        timeout: 20000, // 20 second timeout per section
+      });
+
+      let sectionText = '';
+      
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          sectionText += content;
+          fullAppeal += content;
+          totalLength += content.length;
+          
+          if (onChunk) {
+            await onChunk(content, totalLength);
+          }
         }
       }
+
+      // Add spacing between sections
+      if (i < sections.length - 1) {
+        fullAppeal += '\n\n';
+        totalLength += 2;
+      }
+
+      console.log(`✅ Completed section ${i + 1}/4: ${section.name} (${sectionText.length} chars)`);
     }
 
-    return fullText || '';
+    console.log(`✅ Full appeal generated: ${totalLength} characters`);
+    return fullAppeal;
+
   } catch (error) {
     console.error('Error generating appeal letter:', error);
     throw new Error('Failed to generate appeal letter');
