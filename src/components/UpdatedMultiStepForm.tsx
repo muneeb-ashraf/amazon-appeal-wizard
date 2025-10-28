@@ -1130,65 +1130,98 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
         setStreamedText('');
         
         try {
-            const response = await fetch('/api/generate-appeal-stream', {
+            const sections: string[] = [];
+            const totalSections = 5;
+            
+            // Generate each section sequentially (each has its own 30-second Lambda window)
+            for (let sectionId = 1; sectionId <= totalSections; sectionId++) {
+                const sectionNames = [
+                    'Opening & Introduction',
+                    'Root Cause Analysis',
+                    'Corrective Actions',
+                    'Preventive Measures',
+                    'Closing & Signature'
+                ];
+                
+                const sectionName = sectionNames[sectionId - 1];
+                const progress = Math.floor(((sectionId - 1) / totalSections) * 100);
+                
+                setGenerationStatus(`Generating ${sectionName}... (${sectionId}/${totalSections})`);
+                setGenerationProgress(progress);
+                
+                console.log(`🔄 Requesting section ${sectionId}: ${sectionName}`);
+                
+                const response = await fetch('/api/generate-appeal-section', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sectionId: sectionId,
+                        formData: formData,
+                        previousSections: sections, // Pass previously generated sections for context
+                    }),
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Failed to generate section ${sectionId}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success || !data.sectionText) {
+                    throw new Error(`Invalid response for section ${sectionId}`);
+                }
+                
+                console.log(`✅ Received section ${sectionId}: ${data.characterCount} characters`);
+                
+                // Add the section text
+                sections.push(data.sectionText);
+                
+                // Update the streamed text to show progressive generation
+                setStreamedText(sections.join('\n\n'));
+                
+                // Update progress
+                const newProgress = Math.floor((sectionId / totalSections) * 95); // 95% for generation
+                setGenerationProgress(newProgress);
+            }
+            
+            // All sections generated, combine them
+            const fullAppealText = sections.join('\n\n');
+            
+            setGenerationStatus('Saving to database...');
+            setGenerationProgress(98);
+            
+            // Save the complete appeal to database
+            const saveResponse = await fetch('/api/save-appeal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    formData: formData,
+                    appealText: fullAppealText,
+                }),
             });
-
-            if (!response.ok || !response.body) {
-                throw new Error('Failed to start appeal generation');
+            
+            if (!saveResponse.ok) {
+                console.warn('Failed to save appeal to database, but generation succeeded');
+            } else {
+                const saveData = await saveResponse.json();
+                console.log('✅ Appeal saved with ID:', saveData.appealId);
             }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                
-                if (done) break;
-                
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            
-                            if (data.type === 'status') {
-                                setGenerationStatus(data.message);
-                                if (data.progress) {
-                                    setGenerationProgress(data.progress);
-                                }
-                            } else if (data.type === 'progress') {
-                                setGenerationProgress(data.progress || 0);
-                                setGenerationStatus('Generating appeal...');
-                                // Append the chunk to show real-time generation
-                                if (data.chunk) {
-                                    setStreamedText(prev => prev + data.chunk);
-                                }
-                            } else if (data.type === 'complete') {
-                                setGeneratedAppeal(data.appealText);
-                                setGenerationProgress(100);
-                                setGenerationStatus('Complete!');
-                                setCurrentStep(8);
-                            } else if (data.type === 'error') {
-                                throw new Error(data.message || 'Failed to generate appeal');
-                            }
-                        } catch (parseError) {
-                            console.error('Error parsing SSE data:', parseError);
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Failed to generate appeal. Please try again.');
+            
+            // Complete!
+            setGeneratedAppeal(fullAppealText);
+            setGenerationProgress(100);
+            setGenerationStatus('Complete! ');
+            setCurrentStep(8);
+            
+            console.log(`🎉 Full appeal generated: ${fullAppealText.length} characters`);
+            
+        } catch (error: any) {
+            console.error('❌ Error generating appeal:', error);
+            alert(`Failed to generate appeal: ${error.message}\n\nPlease try again.`);
             setGenerationProgress(0);
             setGenerationStatus('');
+            setStreamedText('');
         } finally {
             setIsGenerating(false);
         }

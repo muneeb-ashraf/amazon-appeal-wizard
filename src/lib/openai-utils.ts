@@ -112,65 +112,97 @@ export async function generateAppealLetter(
 }
 
 /**
- * Generate appeal letter with streaming support and chunked generation
+ * Section definitions for chunked appeal generation
  */
-export async function generateAppealLetterWithStreaming(
+export const APPEAL_SECTIONS = [
+  {
+    id: 1,
+    name: 'Opening & Introduction',
+    prompt: `Generate ONLY the opening section of the appeal letter (greeting, introduction, and immediate context about the issue). Include:
+- Professional greeting (Dear Seller Performance/Amazon Team/etc.)
+- Brief introduction identifying the seller
+- Clear statement of the issue/suspension
+- Reference to any case numbers or ASINs
+Keep this section concise (2-3 paragraphs).`,
+    maxTokens: 700
+  },
+  {
+    id: 2,
+    name: 'Root Cause Analysis',
+    prompt: `Generate ONLY the root cause section of the appeal. Include:
+- Detailed explanation of what caused the issue
+- Specific examples and timeline
+- Investigation process
+- Acknowledgment of responsibility
+Make this comprehensive (3-4 paragraphs).`,
+    maxTokens: 800
+  },
+  {
+    id: 3,
+    name: 'Corrective Actions',
+    prompt: `Generate ONLY the corrective actions section. Include:
+- Specific actions already taken (past tense)
+- Documentation being provided
+- Systems or processes changed
+- People involved or hired
+Make this detailed with concrete examples (3-4 paragraphs).`,
+    maxTokens: 800
+  },
+  {
+    id: 4,
+    name: 'Preventive Measures',
+    prompt: `Generate ONLY the preventive measures section. Include:
+- 10-15 detailed preventive steps (organized by category)
+- Future monitoring commitments
+- Quality control processes
+- Ongoing compliance measures
+Make this very comprehensive (4-5 paragraphs with bullet points).`,
+    maxTokens: 900
+  },
+  {
+    id: 5,
+    name: 'Closing & Signature',
+    prompt: `Generate ONLY the closing section of the appeal. Include:
+- Professional closing statement expressing commitment
+- Request for reinstatement/resolution
+- Appreciation for consideration
+- Full signature block with:
+  * Seller name
+  * Business name
+  * Contact email
+  * Contact phone (if provided)
+Keep this professional and concise (2-3 paragraphs).`,
+    maxTokens: 500
+  }
+];
+
+/**
+ * Generate a single section of the appeal letter
+ * This function is designed to be called separately for each section,
+ * allowing each call to have its own 30-second Lambda timeout window
+ */
+export async function generateAppealSection(
+  sectionId: number,
   formData: AppealFormData,
   relevantDocuments: string[],
-  onChunk?: (chunk: string, totalLength: number) => Promise<void>
+  previousSections: string[] = []
 ): Promise<string> {
   try {
+    const section = APPEAL_SECTIONS.find(s => s.id === sectionId);
+    if (!section) {
+      throw new Error(`Invalid section ID: ${sectionId}`);
+    }
+
+    console.log(`📝 Generating section ${sectionId}/5: ${section.name}`);
+
     // Create context from relevant documents
     const context = relevantDocuments.join('\n\n---TEMPLATE DOCUMENT---\n\n');
 
     // Build user message from form data
     const userMessage = buildUserMessageFromFormData(formData);
 
-    // Generate appeal in 4 chunks for better timeout handling
-    const sections = [
-      {
-        name: 'Opening & Introduction',
-        prompt: `Generate ONLY the opening section of the appeal letter (greeting, introduction, and immediate context about the issue). Include:
-- Professional greeting (Dear Seller Performance/Amazon Team/etc.)
-- Brief introduction identifying the seller
-- Clear statement of the issue/suspension
-- Reference to any case numbers or ASINs
-Keep this section concise (2-3 paragraphs).`
-      },
-      {
-        name: 'Root Cause Analysis',
-        prompt: `Generate ONLY the root cause section of the appeal. Include:
-- Detailed explanation of what caused the issue
-- Specific examples and timeline
-- Investigation process
-- Acknowledgment of responsibility
-Make this comprehensive (3-4 paragraphs).`
-      },
-      {
-        name: 'Corrective Actions',
-        prompt: `Generate ONLY the corrective actions section. Include:
-- Specific actions already taken (past tense)
-- Documentation being provided
-- Systems or processes changed
-- People involved or hired
-Make this detailed with concrete examples (3-4 paragraphs).`
-      },
-      {
-        name: 'Prevention & Closing',
-        prompt: `Generate ONLY the preventive measures and closing section. Include:
-- 10-15 detailed preventive steps (organized by category)
-- Future monitoring commitments
-- Professional closing statement
-- Full signature block with contact information
-Make this very comprehensive (4-5 paragraphs plus bullet points).`
-      }
-    ];
-
-    let fullAppeal = '';
-    let totalLength = 0;
-
-    // Build base system prompt
-    const baseSystemPrompt = `You are an expert Amazon seller appeal writer with deep knowledge of Amazon's policies and successful appeal strategies.
+    // Build system prompt with context
+    const systemPrompt = `You are an expert Amazon seller appeal writer with deep knowledge of Amazon's policies and successful appeal strategies.
 
 You have access to successful Amazon appeal template documents below. Study their style, depth, and structure.
 
@@ -180,53 +212,75 @@ ${context}
 USER INFORMATION:
 ${userMessage}
 
-IMPORTANT: Generate ONLY the requested section. Match the professional tone and depth of the template documents.`;
+${previousSections.length > 0 ? `PREVIOUSLY GENERATED SECTIONS:
+${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 
-    // Generate each section sequentially
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-      
-      console.log(`📝 Generating section ${i + 1}/4: ${section.name}`);
+` : ''}IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist.`;
 
-      const stream = await getOpenAIClient().chat.completions.create({
-        model: 'gpt-4o-mini', // Fast model to stay under timeout
-        messages: [
-          { role: 'system', content: baseSystemPrompt },
-          { role: 'user', content: section.prompt },
-        ],
-        temperature: 0.85,
-        max_tokens: 800, // ~800 tokens per section = ~3200 total
-        stream: true,
-      }, {
-        timeout: 20000, // 20 second timeout per section
-      });
+    const stream = await getOpenAIClient().chat.completions.create({
+      model: 'gpt-4o-mini', // Fast model to stay under timeout
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: section.prompt },
+      ],
+      temperature: 0.85,
+      max_tokens: section.maxTokens,
+      stream: true,
+    }, {
+      timeout: 25000, // 25 second timeout (leaves 5s buffer for Lambda)
+    });
 
-      let sectionText = '';
-      
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) {
-          sectionText += content;
-          fullAppeal += content;
-          totalLength += content.length;
-          
-          if (onChunk) {
-            await onChunk(content, totalLength);
-          }
-        }
+    let sectionText = '';
+    
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        sectionText += content;
       }
-
-      // Add spacing between sections
-      if (i < sections.length - 1) {
-        fullAppeal += '\n\n';
-        totalLength += 2;
-      }
-
-      console.log(`✅ Completed section ${i + 1}/4: ${section.name} (${sectionText.length} chars)`);
     }
 
-    console.log(`✅ Full appeal generated: ${totalLength} characters`);
-    return fullAppeal;
+    console.log(`✅ Completed section ${sectionId}/5: ${section.name} (${sectionText.length} chars)`);
+    return sectionText;
+
+  } catch (error) {
+    const section = APPEAL_SECTIONS.find(s => s.id === sectionId);
+    console.error(`Error generating section ${sectionId}:`, error);
+    throw new Error(`Failed to generate section ${sectionId}: ${section?.name || 'Unknown'}`);
+  }
+}
+
+/**
+ * Generate appeal letter with streaming support and chunked generation
+ * @deprecated Use generateAppealSection for individual sections instead
+ */
+export async function generateAppealLetterWithStreaming(
+  formData: AppealFormData,
+  relevantDocuments: string[],
+  onChunk?: (chunk: string, totalLength: number) => Promise<void>
+): Promise<string> {
+  try {
+    // This function is kept for backward compatibility but should not be used
+    // for production due to timeout issues. Use generateAppealSection instead.
+    console.warn('⚠️  generateAppealLetterWithStreaming is deprecated. Use generateAppealSection for each section separately.');
+    
+    const sections: string[] = [];
+    
+    for (let i = 0; i < APPEAL_SECTIONS.length; i++) {
+      const sectionText = await generateAppealSection(
+        APPEAL_SECTIONS[i].id,
+        formData,
+        relevantDocuments,
+        sections
+      );
+      sections.push(sectionText);
+      
+      if (onChunk) {
+        const fullText = sections.join('\n\n');
+        await onChunk(sectionText, fullText.length);
+      }
+    }
+
+    return sections.join('\n\n');
 
   } catch (error) {
     console.error('Error generating appeal letter:', error);
@@ -391,6 +445,40 @@ function buildUserMessageFromFormData(formData: AppealFormData): string {
   parts.push(`\nDo NOT create a generic or simplified appeal. Match the comprehensive nature of the template documents provided.`);
 
   return parts.join('\n');
+}
+
+/**
+ * Generate a single section with document context
+ * This prepares embeddings and finds relevant documents, then generates one section
+ */
+export async function generateAppealSectionWithContext(
+  sectionId: number,
+  formData: AppealFormData,
+  allDocumentTexts: string[],
+  allDocumentEmbeddings: number[][],
+  previousSections: string[] = []
+): Promise<string> {
+  try {
+    // Create embedding for the user's appeal context
+    const queryText = buildUserMessageFromFormData(formData);
+    const queryEmbedding = await createEmbedding(queryText);
+
+    // Find most relevant documents
+    const documentsWithEmbeddings = allDocumentTexts.map((text, index) => ({
+      text,
+      embedding: allDocumentEmbeddings[index],
+    }));
+
+    const relevantDocs = findRelevantDocuments(queryEmbedding, documentsWithEmbeddings, 20);
+
+    console.log(`✅ Selected ${relevantDocs.length} most relevant template documents for section ${sectionId}`);
+
+    // Generate the section
+    return await generateAppealSection(sectionId, formData, relevantDocs, previousSections);
+  } catch (error) {
+    console.error(`Error generating section ${sectionId} with context:`, error);
+    throw error;
+  }
 }
 
 /**
