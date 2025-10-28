@@ -108,6 +108,17 @@ export async function generateAppealLetter(
   formData: AppealFormData,
   relevantDocuments: string[]
 ): Promise<string> {
+  return generateAppealLetterWithStreaming(formData, relevantDocuments);
+}
+
+/**
+ * Generate appeal letter with streaming support
+ */
+export async function generateAppealLetterWithStreaming(
+  formData: AppealFormData,
+  relevantDocuments: string[],
+  onChunk?: (chunk: string, totalLength: number) => Promise<void>
+): Promise<string> {
   try {
     // Create context from relevant documents
     const context = relevantDocuments.join('\n\n---TEMPLATE DOCUMENT---\n\n');
@@ -192,19 +203,32 @@ Study these templates exhaustively and create a new appeal that matches their de
     // Build user message from form data
     const userMessage = buildUserMessageFromFormData(formData);
 
-    const response = await getOpenAIClient().chat.completions.create({
+    const stream = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o', // Using faster gpt-4o instead of gpt-4-turbo-preview
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userMessage },
       ],
       temperature: 0.85,
-      max_tokens: 3500, // Slightly reduced for faster response
+      max_tokens: 3500,
+      stream: true, // Enable streaming
     }, {
       timeout: 25000, // 25 second timeout (before Amplify's 30s limit)
     });
 
-    return response.choices[0]?.message?.content || '';
+    let fullText = '';
+    
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        fullText += content;
+        if (onChunk) {
+          await onChunk(content, fullText.length);
+        }
+      }
+    }
+
+    return fullText || '';
   } catch (error) {
     console.error('Error generating appeal letter:', error);
     throw new Error('Failed to generate appeal letter');
@@ -376,7 +400,8 @@ function buildUserMessageFromFormData(formData: AppealFormData): string {
 export async function generateAppealWithContext(
   formData: AppealFormData,
   allDocumentTexts: string[],
-  allDocumentEmbeddings: number[][]
+  allDocumentEmbeddings: number[][],
+  onChunk?: (chunk: string, totalLength: number) => Promise<void>
 ): Promise<string> {
   try {
     // Create embedding for the user's appeal context
@@ -394,8 +419,8 @@ export async function generateAppealWithContext(
     console.log(`✅ Selected ${relevantDocs.length} most relevant template documents for appeal generation`);
     console.log(`📝 These templates will guide the structure, depth, and specific elements of the appeal`);
 
-    // Generate the appeal
-    return await generateAppealLetter(formData, relevantDocs);
+    // Generate the appeal with streaming support
+    return await generateAppealLetterWithStreaming(formData, relevantDocs, onChunk);
   } catch (error) {
     console.error('Error generating appeal with context:', error);
     throw error;

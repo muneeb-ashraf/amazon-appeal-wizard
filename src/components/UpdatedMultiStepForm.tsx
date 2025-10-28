@@ -620,7 +620,20 @@ const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
 };
 
 // Step 7: Review & Generate
-const Step7_Review = ({ data, onGenerate, isGenerating }: StepProps & { onGenerate: () => void; isGenerating: boolean }) => {
+const Step7_Review = ({ 
+    data, 
+    onGenerate, 
+    isGenerating, 
+    progress, 
+    status, 
+    streamedText 
+}: StepProps & { 
+    onGenerate: () => void; 
+    isGenerating: boolean;
+    progress?: number;
+    status?: string;
+    streamedText?: string;
+}) => {
     return (
         <div>
             <h2 className="text-3xl font-bold mb-3 text-slate-900 flex items-center gap-3">
@@ -693,6 +706,30 @@ const Step7_Review = ({ data, onGenerate, isGenerating }: StepProps & { onGenera
                     </div>
                 )}
             </ScrollContainer>
+
+            {/* Progress Bar and Status */}
+            {isGenerating && (
+                <div className="mt-6 space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 font-medium">{status || 'Processing...'}</span>
+                        <span className="text-slate-600 font-semibold">{progress || 0}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                        <div 
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-300 ease-out"
+                            style={{ width: `${progress || 0}%` }}
+                        />
+                    </div>
+                    
+                    {/* Show streamed text preview */}
+                    {streamedText && (
+                        <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg max-h-40 overflow-y-auto">
+                            <p className="text-xs text-slate-500 mb-2">Preview (Generating...):</p>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{streamedText}</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="mt-8">
                 <button
@@ -1065,6 +1102,9 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
     const [formData, setFormData] = React.useState<AppealFormData>(initialFormData);
     const [isGenerating, setIsGenerating] = React.useState(false);
     const [generatedAppeal, setGeneratedAppeal] = React.useState('');
+    const [generationProgress, setGenerationProgress] = React.useState(0);
+    const [generationStatus, setGenerationStatus] = React.useState('');
+    const [streamedText, setStreamedText] = React.useState('');
 
     const totalSteps = 8;
     const stepNames = ['Type', 'Account', 'Cause', 'Actions', 'Prevention', 'Documents', 'Review', 'Appeal'];
@@ -1085,25 +1125,70 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
 
     const handleGenerate = async () => {
         setIsGenerating(true);
+        setGenerationProgress(0);
+        setGenerationStatus('Initializing...');
+        setStreamedText('');
         
         try {
-            const response = await fetch('/api/generate-appeal', {
+            const response = await fetch('/api/generate-appeal-stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ formData }),
+                body: JSON.stringify(formData),
             });
 
-            const data = await response.json();
+            if (!response.ok || !response.body) {
+                throw new Error('Failed to start appeal generation');
+            }
 
-            if (data.success) {
-                setGeneratedAppeal(data.appealText);
-                setCurrentStep(8);
-            } else {
-                alert('Error generating appeal: ' + (data.error || 'Unknown error'));
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'status') {
+                                setGenerationStatus(data.message);
+                                if (data.progress) {
+                                    setGenerationProgress(data.progress);
+                                }
+                            } else if (data.type === 'progress') {
+                                setGenerationProgress(data.progress || 0);
+                                setGenerationStatus('Generating appeal...');
+                                // Append the chunk to show real-time generation
+                                if (data.chunk) {
+                                    setStreamedText(prev => prev + data.chunk);
+                                }
+                            } else if (data.type === 'complete') {
+                                setGeneratedAppeal(data.appealText);
+                                setGenerationProgress(100);
+                                setGenerationStatus('Complete!');
+                                setCurrentStep(8);
+                            } else if (data.type === 'error') {
+                                throw new Error(data.message || 'Failed to generate appeal');
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing SSE data:', parseError);
+                        }
+                    }
+                }
             }
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to generate appeal. Please try again.');
+            setGenerationProgress(0);
+            setGenerationStatus('');
         } finally {
             setIsGenerating(false);
         }
@@ -1128,7 +1213,15 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
             case 4: return <Step4_CorrectiveActions data={formData} setData={setFormData} />;
             case 5: return <Step5_PreventiveMeasures data={formData} setData={setFormData} />;
             case 6: return <Step6_SupportingDocuments data={formData} setData={setFormData} />;
-            case 7: return <Step7_Review data={formData} setData={setFormData} onGenerate={handleGenerate} isGenerating={isGenerating} />;
+            case 7: return <Step7_Review 
+                data={formData} 
+                setData={setFormData} 
+                onGenerate={handleGenerate} 
+                isGenerating={isGenerating}
+                progress={generationProgress}
+                status={generationStatus}
+                streamedText={streamedText}
+            />;
             case 8: return <Step8_GeneratedAppeal data={formData} setData={setFormData} appealText={generatedAppeal} />;
             default: return null;
         }

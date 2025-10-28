@@ -17,11 +17,6 @@ const nextConfig = {
     NEXT_AWS_SECRET_ACCESS_KEY: process.env.NEXT_AWS_SECRET_ACCESS_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
-  // Experimental features for better performance
-  experimental: {
-    // Increase server action timeout (this won't override Amplify's 30s limit though)
-    serverActionsBodySizeLimit: '2mb',
-  },
   // Ensure TypeScript paths are properly resolved
   typescript: {
     ignoreBuildErrors: false,
