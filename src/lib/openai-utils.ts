@@ -166,12 +166,23 @@ Make this very comprehensive (4-5 paragraphs with bullet points).`,
 - Professional closing statement expressing commitment
 - Request for reinstatement/resolution
 - Appreciation for consideration
-- Full signature block with:
-  * Seller name
-  * Business name
-  * Contact email
-  * Contact phone (if provided)
-Keep this professional and concise (2-3 paragraphs).`,
+- Closing salutation (e.g., "Best regards," or "Sincerely,")
+- Full signature block with EACH item on a SEPARATE LINE:
+  * Full name (on its own line)
+  * Business/store name (on its own line)
+  * Merchant Token ID: [value] (on its own line, ONLY if provided - do not include if not available)
+  * Email address (on its own line)
+  * DO NOT include phone number or any placeholder text like "[Contact phone not provided]"
+
+CRITICAL: Format the signature block with line breaks between each element. Example:
+Best regards,
+
+John Smith
+ABC Store LLC
+Merchant Token ID: A1234567890
+john@example.com
+
+Keep this professional and concise (2-3 paragraphs plus signature).`,
     maxTokens: 500
   }
 ];

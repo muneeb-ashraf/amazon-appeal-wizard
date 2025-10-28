@@ -707,27 +707,38 @@ const Step7_Review = ({
                 )}
             </ScrollContainer>
 
-            {/* Progress Bar and Status */}
+            {/* Intuitive Progress Dialogue */}
             {isGenerating && (
-                <div className="mt-6 space-y-3">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 font-medium">{status || 'Processing...'}</span>
-                        <span className="text-slate-600 font-semibold">{progress || 0}%</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-                        <div 
-                            className="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-300 ease-out"
-                            style={{ width: `${progress || 0}%` }}
-                        />
-                    </div>
-                    
-                    {/* Show streamed text preview */}
-                    {streamedText && (
-                        <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg max-h-40 overflow-y-auto">
-                            <p className="text-xs text-slate-500 mb-2">Preview (Generating...):</p>
-                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{streamedText}</p>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-300">
+                        {/* Animated Icon */}
+                        <div className="flex justify-center mb-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-lg opacity-50 animate-pulse"></div>
+                                <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full p-4">
+                                    <SparklesIcon className="w-12 h-12 text-white animate-pulse" />
+                                </div>
+                            </div>
                         </div>
-                    )}
+                        
+                        {/* Dynamic Message */}
+                        <div className="text-center space-y-4">
+                            <h3 className="text-2xl font-bold text-slate-900">Crafting Your Appeal</h3>
+                            <p className="text-lg text-slate-600 leading-relaxed min-h-[60px]">
+                                {getProgressMessage(progress || 0)}
+                            </p>
+                            
+                            {/* Animated Progress Indicator */}
+                            <div className="flex justify-center space-x-2 py-4">
+                                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                            
+                            {/* Subtle percentage indicator */}
+                            <p className="text-sm text-slate-400 font-medium">{progress || 0}% Complete</p>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -762,7 +773,11 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
     const [copied, setCopied] = React.useState(false);
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(appealText);
+        // Clean the appeal text before copying
+        let cleanedText = appealText.replace(/---SECTION BREAK---/g, '');
+        cleanedText = cleanedText.replace(/\[Contact phone not provided\]/gi, '');
+        
+        navigator.clipboard.writeText(cleanedText);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -781,11 +796,12 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 72; // 1 inch margins
         const contentWidth = pageWidth - (margin * 2);
+        const bottomMargin = 72; // Space for footer at bottom
         let yPosition = margin;
         
         // Helper function to check if we need a new page
         const checkPageBreak = (neededSpace: number) => {
-            if (yPosition + neededSpace > pageHeight - 100) { // 100pt for footer space
+            if (yPosition + neededSpace > pageHeight - bottomMargin) {
                 doc.addPage();
                 yPosition = margin;
                 return true;
@@ -807,103 +823,144 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
         doc.line(margin, yPosition, pageWidth - margin, yPosition);
         yPosition += 20;
         
+        // Clean the appeal text - remove section breaks and placeholders
+        let cleanedAppealText = appealText.replace(/---SECTION BREAK---/g, '');
+        
+        // Remove placeholder contact phone if it exists
+        cleanedAppealText = cleanedAppealText.replace(/\[Your Contact Phone\]\s*/g, '');
+        
         // Process appeal text
         doc.setFont('times', 'normal');
-        doc.setFontSize(12); // Increased from 11 for better readability
+        doc.setFontSize(12);
         
         // Split into paragraphs but keep markdown for processing
-        const paragraphs = appealText.split('\n\n');
+        const paragraphs = cleanedAppealText.split('\n\n').filter(p => p.trim());
         
         paragraphs.forEach((para, index) => {
-            if (!para.trim()) return;
+            const trimmedPara = para.trim();
+            if (!trimmedPara) return;
             
-            // Check if it's a major section header (starts with A., B., C., etc. - usually all bold)
-            const isMajorSection = /^[A-Z]\.\s/.test(para.trim());
-            
-            // Check if it's a numbered list item (1., 2., 3., etc.)
-            const numberedListMatch = para.trim().match(/^(\d+\.\s+)(\*\*[^*]+\*\*:?\s*)([\s\S]*)/);
-            
-            if (numberedListMatch) {
-                // It's a numbered list with a bold title
-                checkPageBreak(40);
-                yPosition += 8; // Space before list item
+            // Check if this is a signature block (contains line breaks and email)
+            if (trimmedPara.includes('\n') && !trimmedPara.includes('\n\n')) {
+                const lines = trimmedPara.split('\n').map(l => l.trim()).filter(l => l);
+                const hasEmail = lines.some(l => l.includes('@'));
                 
-                const [, number, boldTitle, description] = numberedListMatch;
-                const cleanTitle = boldTitle.replace(/\*\*/g, '').trim();
-                const cleanDescription = description.replace(/\*\*/g, '').trim();
-                
-                // Render number + bold title
-                doc.setFont('times', 'normal');
-                const numberWidth = doc.getTextWidth(number);
-                doc.text(number, margin, yPosition);
-                
-                doc.setFont('times', 'bold');
-                const titleLines = doc.splitTextToSize(cleanTitle, contentWidth - numberWidth - 5);
-                doc.text(titleLines, margin + numberWidth, yPosition);
-                yPosition += titleLines.length * 16; // Increased line height
-                
-                // Render description in normal font with better spacing
-                if (cleanDescription) {
-                    doc.setFont('times', 'normal');
-                    const descLines = doc.splitTextToSize(cleanDescription, contentWidth - numberWidth - 5);
-                    doc.text(descLines, margin + numberWidth, yPosition);
-                    yPosition += descLines.length * 16 + 12; // Increased spacing
-                } else {
-                    yPosition += 12;
+                if (hasEmail && lines.length >= 2) {
+                    // This is a signature block - render each line separately
+                    checkPageBreak(lines.length * 18 + 30);
+                    yPosition += 20; // Extra space before signature
+                    
+                    lines.forEach((line, lineIdx) => {
+                        // Check if this is the salutation line
+                        if (/^(Best regards|Sincerely|Respectfully|Regards),?$/i.test(line)) {
+                            doc.setFont('times', 'normal');
+                            doc.text(line, margin, yPosition);
+                            yPosition += 30; // Extra space after salutation
+                        } else {
+                            // Regular signature line
+                            doc.setFont('times', 'normal');
+                            doc.text(line, margin, yPosition);
+                            yPosition += 14; // Single line spacing
+                        }
+                    });
+                    yPosition += 10; // Space after signature block
+                    return;
                 }
-            } else if (isMajorSection) {
-                // Major section header (A., B., C.) - entire line bold
-                checkPageBreak(40);
-                yPosition += 16; // Extra space before major section
+            }
+            
+            // Check if it's a section header (all caps or title-like without punctuation)
+            const isSectionHeader = /^[A-Z][^.!?]*[A-Z][^.!?]*$/.test(trimmedPara) && 
+                                   trimmedPara.split(' ').length <= 10 && 
+                                   !trimmedPara.startsWith('-');
+            
+            // Check if it's a subsection header (ends with colon)
+            const isSubHeader = trimmedPara.endsWith(':') && 
+                               !trimmedPara.startsWith('-') && 
+                               trimmedPara.split(' ').length <= 8;
+            
+            // Check if it's a bullet point
+            const isBulletPoint = /^-\s+/.test(trimmedPara);
+            
+            if (isSectionHeader) {
+                // Major section header
+                checkPageBreak(50);
+                yPosition += 20; // Extra space before section
                 doc.setFont('times', 'bold');
-                doc.setFontSize(13); // Slightly larger for section headers
-                const cleanPara = para.replace(/\*\*/g, '');
+                doc.setFontSize(13);
+                const cleanPara = trimmedPara.replace(/\*\*/g, '');
                 const lines = doc.splitTextToSize(cleanPara, contentWidth);
                 doc.text(lines, margin, yPosition);
-                yPosition += lines.length * 18 + 8; // More spacing after headers
-                doc.setFontSize(12); // Reset to normal size
+                yPosition += lines.length * 18 + 12;
+                doc.setFontSize(12);
                 doc.setFont('times', 'normal');
-            } else {
-                // Regular paragraph - handle bold text inline
-                checkPageBreak(30);
-                const cleanPara = para.replace(/\*\*/g, '');
+            } else if (isSubHeader) {
+                // Subsection header
+                checkPageBreak(40);
+                yPosition += 12;
+                doc.setFont('times', 'bold');
+                const cleanPara = trimmedPara.replace(/\*\*/g, '');
                 const lines = doc.splitTextToSize(cleanPara, contentWidth);
                 doc.text(lines, margin, yPosition);
-                yPosition += lines.length * 16 + 10; // Better line and paragraph spacing
+                yPosition += lines.length * 16 + 8;
+                doc.setFont('times', 'normal');
+            } else if (isBulletPoint) {
+                // Bullet point
+                checkPageBreak(35);
+                yPosition += 6;
+                
+                const content = trimmedPara.replace(/^-\s+/, '').replace(/\*\*/g, '');
+                const bulletIndent = 20;
+                
+                // Check if bullet has a bold header
+                const boldMatch = content.match(/^([^:]+):\s*(.*)/);
+                
+                if (boldMatch) {
+                    const [, header, description] = boldMatch;
+                    
+                    // Draw bullet
+                    doc.setFontSize(14);
+                    doc.text('•', margin, yPosition);
+                    doc.setFontSize(12);
+                    
+                    // Draw bold header
+                    doc.setFont('times', 'bold');
+                    const headerLines = doc.splitTextToSize(header + ':', contentWidth - bulletIndent);
+                    doc.text(headerLines, margin + bulletIndent, yPosition);
+                    yPosition += headerLines.length * 16;
+                    
+                    // Draw description
+                    if (description.trim()) {
+                        doc.setFont('times', 'normal');
+                        const descLines = doc.splitTextToSize(description.trim(), contentWidth - bulletIndent);
+                        doc.text(descLines, margin + bulletIndent, yPosition);
+                        yPosition += descLines.length * 16 + 6;
+                    } else {
+                        yPosition += 6;
+                    }
+                } else {
+                    // Simple bullet
+                    doc.setFontSize(14);
+                    doc.text('•', margin, yPosition);
+                    doc.setFontSize(12);
+                    
+                    const lines = doc.splitTextToSize(content, contentWidth - bulletIndent);
+                    doc.text(lines, margin + bulletIndent, yPosition);
+                    yPosition += lines.length * 16 + 6;
+                }
+            } else {
+                // Regular paragraph
+                checkPageBreak(30);
+                const cleanPara = trimmedPara.replace(/\*\*/g, '');
+                const lines = doc.splitTextToSize(cleanPara, contentWidth);
+                doc.text(lines, margin, yPosition);
+                yPosition += lines.length * 16 + 12;
             }
         });
         
-        // Add footer and page numbers to all pages
+        // Add page numbers to all pages (centered at bottom)
         const totalPages = doc.internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
-            
-            // Add footer on each page - positioned from bottom with proper spacing
-            doc.setFontSize(10);
-            doc.setFont('times', 'normal');
-            
-            // Start footer 72pt (1 inch) from bottom
-            const footerStartY = pageHeight - 72;
-            let currentFooterY = footerStartY;
-            
-            // Line 1: Name
-            doc.text(data.fullName, margin, currentFooterY);
-            currentFooterY += 12; // Move down 12pt
-            
-            // Line 2: Store Name
-            doc.text(data.storeName, margin, currentFooterY);
-            currentFooterY += 12; // Move down 12pt
-            
-            // Line 3: Merchant Token (if exists)
-            if (data.sellerId) {
-                doc.text(`Merchant Token ID: ${data.sellerId}`, margin, currentFooterY);
-                currentFooterY += 12; // Move down 12pt
-            }
-            
-            // Line 4: Email
-            doc.text(data.email, margin, currentFooterY);
-            
-            // Add page number at very bottom
             doc.setFontSize(9);
             doc.setFont('times', 'normal');
             doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
@@ -915,51 +972,97 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
 
     // Format appeal text with proper Word-like styling
     const formatAppealForDisplay = (text: string) => {
+        // Remove section break markers
+        let cleanedText = text.replace(/---SECTION BREAK---/g, '');
+        
+        // Remove placeholder phone text
+        cleanedText = cleanedText.replace(/\[Contact phone not provided\]/gi, '');
+        
         // Split into paragraphs
-        const paragraphs = text.split('\n\n');
+        const paragraphs = cleanedText.split('\n\n').filter(p => p.trim());
         
         return paragraphs.map((para, idx) => {
-            // Handle bold text with both **text** and *text* - make sure to not create runaway bold formatting
-            // First handle double asterisks, then single asterisks
-            let formatted = para.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+            const trimmedPara = para.trim();
+            
+            // Skip empty paragraphs
+            if (!trimmedPara) return '';
+            
+            // Check if this is a closing signature block (multiple single lines)
+            // Signature blocks typically have name, company, email on separate lines
+            if (trimmedPara.includes('\n') && !trimmedPara.includes('\n\n')) {
+                const lines = trimmedPara.split('\n').map(l => l.trim()).filter(l => l);
+                
+                // Check if it looks like a signature block (has email or contains common signature elements)
+                const hasEmail = lines.some(l => l.includes('@'));
+                const hasCommonSignatureWords = lines.some(l => 
+                    /^(Best regards|Sincerely|Respectfully|Regards),?$/i.test(l)
+                );
+                
+                if ((hasEmail || hasCommonSignatureWords) && lines.length >= 2) {
+                    // Format as signature block with proper spacing
+                    return `<div key="${idx}" style="margin-top: 2rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                        ${lines.map(line => {
+                            // Check if this is the salutation line (Best regards, Sincerely, etc.)
+                            if (/^(Best regards|Sincerely|Respectfully|Regards),?$/i.test(line)) {
+                                return `<p style="margin-bottom: 2rem; color: #334155;">${line}</p>`;
+                            }
+                            return `<p style="margin-bottom: 0.4rem; color: #1e293b; font-weight: 500;">${line}</p>`;
+                        }).join('')}
+                    </div>`;
+                }
+            }
+            
+            // Handle bold text with both **text** and *text*
+            let formatted = trimmedPara.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*([^*\n]+?)\*/g, '<strong>$1</strong>');
             
-            // Check if it's a major section header (A., B., C.)
-            const isMajorSection = /^[A-Z]\.\s/.test(para.trim());
+            // Check if it's a major section header (all caps or title-like)
+            const isMajorHeader = /^[A-Z][^.!?]*[A-Z][^.!?]*$/.test(trimmedPara) && trimmedPara.split(' ').length <= 10;
+            
+            // Check if it's a subsection header ending with colon
+            const isSubHeader = trimmedPara.endsWith(':') && !trimmedPara.startsWith('-') && trimmedPara.split(' ').length <= 8;
+            
+            // Check if it's a bullet point (starts with -)
+            const isBulletPoint = /^-\s+/.test(trimmedPara);
             
             // Check if it's a numbered list item (1., 2., 3., etc.)
-            const isNumberedList = /^\d+\.\s/.test(para.trim());
+            const isNumberedList = /^\d+\.\s/.test(trimmedPara);
             
-            // Check if it's a bullet point line
-            const isBullet = /^[•\-\*]\s/.test(para.trim());
-            
-            // Check if it's a nested bullet (indented)
-            const isNestedBullet = /^\s{2,}[•\-\*]\s/.test(para);
-            
-            if (isMajorSection) {
-                return `<div key="${idx}" style="margin-top: 1.75rem; margin-bottom: 1.25rem; font-weight: 700; font-size: 1.1rem; color: #0f172a; line-height: 1.6;">${formatted}</div>`;
+            if (isMajorHeader) {
+                return `<h3 key="${idx}" style="margin-top: 2rem; margin-bottom: 1rem; font-weight: 700; font-size: 1.15rem; color: #1e293b; line-height: 1.4; letter-spacing: 0.5px;">${formatted}</h3>`;
+            } else if (isSubHeader) {
+                return `<h4 key="${idx}" style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; font-size: 1.05rem; color: #334155; line-height: 1.4;">${formatted}</h4>`;
+            } else if (isBulletPoint) {
+                // Extract the content after the dash
+                const content = formatted.replace(/^-\s+/, '');
+                const [boldPart, ...restParts] = content.split('</strong>');
+                
+                if (boldPart.includes('<strong>')) {
+                    // Has a bold header
+                    const header = boldPart.replace('<strong>', '');
+                    const description = restParts.join('</strong>').replace(/^:\s*/, '');
+                    
+                    return `<div key="${idx}" style="margin-left: 2rem; margin-bottom: 0.85rem; padding-left: 1.5rem; position: relative; line-height: 1.75;">
+                        <span style="position: absolute; left: 0; top: 0.25rem; color: #3b82f6; font-size: 1.2rem; font-weight: bold;">•</span>
+                        <div>
+                            <strong style="color: #1e293b; font-size: 1rem;">${header}</strong>
+                            ${description ? `<span style="color: #475569; display: block; margin-top: 0.25rem;">${description}</span>` : ''}
+                        </div>
+                    </div>`;
+                } else {
+                    // Simple bullet
+                    return `<div key="${idx}" style="margin-left: 2rem; margin-bottom: 0.65rem; padding-left: 1.5rem; position: relative; line-height: 1.75; color: #475569;">
+                        <span style="position: absolute; left: 0; top: 0.25rem; color: #3b82f6; font-size: 1.2rem; font-weight: bold;">•</span>
+                        <span>${content}</span>
+                    </div>`;
+                }
             } else if (isNumberedList) {
-                // Numbered list items - give them special formatting
-                return `<div key="${idx}" style="margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 1rem; line-height: 1.9; color: #1e293b;">${formatted}</div>`;
-            } else if (isNestedBullet) {
-                // Nested bullet with more indentation
-                const content = formatted.replace(/^\s+[•\-\*]\s/, '');
-                return `<div key="${idx}" style="margin-left: 2.5rem; margin-bottom: 0.5rem; padding-left: 1rem; position: relative;">
-                    <span style="position: absolute; left: 0; color: #64748b;">◦</span>
-                    <span style="line-height: 1.9; color: #334155;">${content}</span>
-                </div>`;
-            } else if (isBullet) {
-                // Regular bullet point
-                const content = formatted.replace(/^[•\-\*]\s/, '');
-                return `<div key="${idx}" style="margin-left: 1.5rem; margin-bottom: 0.5rem; padding-left: 1rem; position: relative;">
-                    <span style="position: absolute; left: 0; color: #64748b;">•</span>
-                    <span style="line-height: 1.9; color: #334155;">${content}</span>
-                </div>`;
+                return `<div key="${idx}" style="margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 1.5rem; line-height: 1.85; color: #334155;">${formatted}</div>`;
             } else {
                 // Regular paragraph with improved readability
-                return `<p key="${idx}" style="margin-bottom: 1.25rem; line-height: 1.9; color: #1e293b; text-align: justify;">${formatted}</p>`;
+                return `<p key="${idx}" style="margin-bottom: 1.35rem; line-height: 1.85; color: #334155; text-align: justify; font-size: 1rem;">${formatted}</p>`;
             }
-        }).join('');
+        }).filter(html => html).join('');
     };
 
     return (
@@ -979,11 +1082,12 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
                     <div 
                         className="p-12 bg-white text-left"
                         style={{
-                            fontFamily: "'Times New Roman', Times, serif",
-                            fontSize: '12pt',
-                            lineHeight: '1.8',
+                            fontFamily: "'Georgia', 'Times New Roman', Times, serif",
+                            fontSize: '13pt',
+                            lineHeight: '1.75',
                             maxWidth: '8.5in',
                             margin: '0 auto',
+                            color: '#1e293b',
                         }}
                         dangerouslySetInnerHTML={{ __html: formatAppealForDisplay(appealText) }}
                     />
@@ -1095,6 +1199,18 @@ const ProgressBar = ({ steps, currentStepIndex }: { steps: string[]; currentStep
         </div>
     </div>
 );
+
+// Helper function to get engaging progress messages
+const getProgressMessage = (progress: number): string => {
+    if (progress < 10) return "Analyzing your case details...";
+    if (progress < 25) return "Reviewing Amazon's policies and guidelines...";
+    if (progress < 40) return "Structuring your professional appeal...";
+    if (progress < 55) return "Incorporating best practices from successful appeals...";
+    if (progress < 70) return "Crafting compelling arguments for your case...";
+    if (progress < 85) return "Finalizing your personalized appeal letter...";
+    if (progress < 95) return "Polishing and formatting your document...";
+    return "Almost ready! Just a moment more...";
+};
 
 // --- MAIN COMPONENT ---
 export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: () => void }) {
