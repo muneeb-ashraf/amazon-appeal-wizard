@@ -119,44 +119,71 @@ export const APPEAL_SECTIONS = [
     id: 1,
     name: 'Opening & Introduction',
     prompt: `Generate ONLY the opening section of the appeal letter (greeting, introduction, and immediate context about the issue). Include:
-- Professional greeting (Dear Seller Performance/Amazon Team/etc.)
+- Professional greeting (Dear Amazon Seller Performance Team,)
 - Brief introduction identifying the seller
 - Clear statement of the issue/suspension
-- Reference to any case numbers or ASINs
-Keep this section concise (2-3 paragraphs).`,
+- Reference to any case numbers or ASINs (ONLY if provided)
+Keep this section concise (2-3 paragraphs).
+
+CRITICAL RULES:
+- DO NOT use placeholder text like [insert case number], [add details], etc.
+- If specific information (like case numbers, dates) is not provided, simply don't mention it
+- Use only the actual information provided in the user data`,
     maxTokens: 700
   },
   {
     id: 2,
     name: 'Root Cause Analysis',
     prompt: `Generate ONLY the root cause section of the appeal. Include:
+- Clear section heading: "Root Cause Analysis" (plain text, not markdown)
 - Detailed explanation of what caused the issue
-- Specific examples and timeline
-- Investigation process
+- Investigation process and findings
+- Timeline (ONLY if actual dates are provided - otherwise describe events generally)
 - Acknowledgment of responsibility
-Make this comprehensive (3-4 paragraphs).`,
+Make this comprehensive (3-4 paragraphs).
+
+CRITICAL RULES:
+- DO NOT use placeholder text like [insert date], [add information], etc.
+- DO NOT use markdown formatting (###, **, etc.)
+- If dates aren't provided, describe the sequence of events without specific dates
+- Write in clear paragraph form without markdown`,
     maxTokens: 800
   },
   {
     id: 3,
     name: 'Corrective Actions',
     prompt: `Generate ONLY the corrective actions section. Include:
-- Specific actions already taken (past tense)
-- Documentation being provided
+- Clear section heading: "Corrective Actions Taken" (plain text, not markdown)
+- Specific actions already taken (past tense: "I have implemented...", "I completed...")
+- Documentation gathered and being provided
 - Systems or processes changed
 - People involved or hired
-Make this detailed with concrete examples (3-4 paragraphs).`,
+Make this detailed with concrete examples (3-4 paragraphs).
+
+CRITICAL RULES:
+- DO NOT use placeholder text like [insert date], [add details]
+- DO NOT use markdown headers (###) or bullet formatting (-)
+- Write in paragraph form with clear transitions
+- Use past tense for completed actions`,
     maxTokens: 800
   },
   {
     id: 4,
     name: 'Preventive Measures',
     prompt: `Generate ONLY the preventive measures section. Include:
-- 10-15 detailed preventive steps (organized by category)
+- Clear section heading: "Preventive Measures to Avoid Future Issues" (plain text, not markdown)
+- Organized preventive steps by category (Sourcing, Listings, Training, Monitoring)
+- 10-15 detailed preventive steps total
 - Future monitoring commitments
 - Quality control processes
-- Ongoing compliance measures
-Make this very comprehensive (4-5 paragraphs with bullet points).`,
+Make this comprehensive (4-5 paragraphs covering all categories).
+
+CRITICAL RULES:
+- DO NOT use markdown headers (###) or list formatting (- bullets)
+- DO NOT add section break markers like "---END OF SECTION---"
+- Write in paragraph form with natural category transitions
+- Use future tense (will implement, will ensure, etc.)
+- Keep it comprehensive but well-organized`,
     maxTokens: 900
   },
   {
