@@ -1154,7 +1154,7 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
                     </li>
                     <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-xs">3</span>
-                        <span><strong>Navigate to Appeals:</strong> Go to <span className="font-semibold">Performance → Account Health → Appeals</span> or check your Performance Notifications</span>
+                        <span><strong>Navigate to Appeals:</strong> Go to <span className="font-semibold">Performance → Account Health → Appeals</span> or check your Performance Notifications. <span className="font-semibold">If this option is not available to you, open a case with Seller Support and submit the POA as an attachment.</span></span>
                     </li>
                     <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-xs">4</span>
