@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         await sendSSE({ type: 'status', message: 'Loading document templates...' });
 
         // Get cached embeddings
-        const { documentTexts, documentEmbeddings } = await getCachedEmbeddings();
+        const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
 
         if (documentTexts.length === 0) {
           await sendSSE({ type: 'error', message: 'No template documents available' });
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        await sendSSE({ 
-          type: 'status', 
-          message: `Found ${documentTexts.length} template documents. Generating appeal...` 
+        await sendSSE({
+          type: 'status',
+          message: `Found ${documentTexts.length} template documents. Generating appeal...`
         });
 
         let lastProgress = 0;
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
           formData,
           documentTexts,
           documentEmbeddings,
+          documentNames,
           async (chunk: string, totalLength: number) => {
             // Calculate progress (estimate 3500 tokens max)
             const progress = Math.min(95, Math.floor((totalLength / 3500) * 100));

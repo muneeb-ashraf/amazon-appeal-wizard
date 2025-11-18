@@ -21,7 +21,11 @@ export type AppealType =
   | 'kdp-acx-merch'
   | 'fba-shipping'
   | 'amazon-relay'
-  | 'brand-registry';
+  | 'brand-registry'
+  | 'safety-suspension'
+  | 'variation-abuse'
+  | 'merch-termination'
+  | 'other';
 
 // Root Cause Options
 export interface RootCauseOptions {

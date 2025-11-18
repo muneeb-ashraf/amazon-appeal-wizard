@@ -75,26 +75,73 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 /**
- * Find most relevant documents based on query embedding
+ * Map appeal types to document keywords for better template matching
+ */
+const APPEAL_TYPE_KEYWORDS: Record<string, string[]> = {
+  'related-account': ['related', 'multiple accounts'],
+  'kdp-acx-merch': ['KDP', 'ACX', 'Merch', 'Petru Nedelku', 'Kent Jameson', 'Jennifer Smith', 'Dimitri Jesse'],
+  'amazon-relay': ['Relay', 'carrier', 'driver', 'subcontract'],
+  'intellectual-property': ['IP', 'copyright', 'trademark', 'patent', 'Paula Guran', 'Heartwood'],
+  'seller-code-conduct': ['review manipulation', 'Zachary Munoz', 'forged'],
+  'drop-shipping': ['dropship', 'drop-ship', 'SA -'],
+  'restricted-products': ['restricted', 'disease claims', 'Carlos Shah', 'FLOLEAF', 'supplement'],
+  'used-sold-as-new': ['used sold as new', 'condition', 'ODR', 'Robert Harvey', 'Mark Hanson'],
+  'high-cancellation': ['cancellation', 'sales velocity', 'Believegroup', 'Brillias'],
+  'verification-failure': ['verification', 'Viking Investments'],
+  'detail-page-abuse': ['detail page', 'Sanjay Gupta'],
+  'category-approval': ['category', 'CPC', 'S. Topper'],
+  'brand-registry': ['brand registry', 'Adrian Vizireanu'],
+  'inauthenticity-supply-chain': ['inauthentic', 'supply chain', 'Maaz Ahmed', 'Tina Pere', 'Saarang Ayaz'],
+  'account-compromised': ['hack', 'compromised', 'Erica Sutton'],
+  'fba-shipping': ['FBA', 'Sandadi Reddy'],
+  'marketplace-pricing': ['fair pricing', 'Jan Pohnan'],
+};
+
+/**
+ * Find most relevant documents based on query embedding and appeal type
+ * Improved to prioritize appeal-type-specific templates
  */
 export function findRelevantDocuments(
   queryEmbedding: number[],
-  documentEmbeddings: Array<{ text: string; embedding: number[] }>,
-  topK: number = 20
+  documentEmbeddings: Array<{ text: string; embedding: number[]; metadata?: { documentName?: string } }>,
+  topK: number = 20,
+  appealType?: string
 ): string[] {
+  // Calculate similarities
   const similarities = documentEmbeddings.map((doc) => ({
     text: doc.text,
+    documentName: doc.metadata?.documentName || '',
     similarity: cosineSimilarity(queryEmbedding, doc.embedding),
   }));
+
+  // If appeal type is provided, boost scores for matching documents
+  if (appealType && APPEAL_TYPE_KEYWORDS[appealType]) {
+    const keywords = APPEAL_TYPE_KEYWORDS[appealType];
+
+    similarities.forEach((item) => {
+      const docNameLower = item.documentName.toLowerCase();
+      // Check if document name contains any of the keywords for this appeal type
+      const hasKeyword = keywords.some(keyword =>
+        docNameLower.includes(keyword.toLowerCase())
+      );
+
+      if (hasKeyword) {
+        // Boost similarity score for type-matching documents
+        item.similarity = item.similarity * 1.5;
+        console.log(`🎯 Boosted relevance for ${item.documentName.substring(0, 50)}...`);
+      }
+    });
+  }
 
   // Sort by similarity (highest first)
   similarities.sort((a, b) => b.similarity - a.similarity);
 
   // Log similarity scores for debugging
-  console.log('📊 Top document similarities:');
+  console.log(`📊 Top document similarities${appealType ? ' (with ' + appealType + ' boosting)' : ''}:`);
   similarities.slice(0, Math.min(10, topK)).forEach((item, index) => {
-    const preview = item.text.substring(0, 100).replace(/\n/g, ' ');
-    console.log(`  ${index + 1}. Similarity: ${item.similarity.toFixed(4)} - ${preview}...`);
+    const preview = item.text.substring(0, 80).replace(/\n/g, ' ');
+    const docName = item.documentName ? ` [${item.documentName.substring(0, 30)}...]` : '';
+    console.log(`  ${index + 1}. Similarity: ${item.similarity.toFixed(4)}${docName} - ${preview}...`);
   });
 
   // Return top K documents
@@ -601,6 +648,7 @@ export async function generateAppealSectionWithContext(
   formData: AppealFormData,
   allDocumentTexts: string[],
   allDocumentEmbeddings: number[][],
+  allDocumentNames: string[],
   previousSections: string[] = []
 ): Promise<string> {
   try {
@@ -612,9 +660,10 @@ export async function generateAppealSectionWithContext(
     const documentsWithEmbeddings = allDocumentTexts.map((text, index) => ({
       text,
       embedding: allDocumentEmbeddings[index],
+      metadata: { documentName: allDocumentNames[index] }
     }));
 
-    const relevantDocs = findRelevantDocuments(queryEmbedding, documentsWithEmbeddings, 20);
+    const relevantDocs = findRelevantDocuments(queryEmbedding, documentsWithEmbeddings, 20, formData.appealType);
 
     console.log(`✅ Selected ${relevantDocs.length} most relevant template documents for section ${sectionId}`);
 
@@ -633,6 +682,7 @@ export async function generateAppealWithContext(
   formData: AppealFormData,
   allDocumentTexts: string[],
   allDocumentEmbeddings: number[][],
+  allDocumentNames: string[],
   onChunk?: (chunk: string, totalLength: number) => Promise<void>
 ): Promise<string> {
   try {
@@ -644,9 +694,10 @@ export async function generateAppealWithContext(
     const documentsWithEmbeddings = allDocumentTexts.map((text, index) => ({
       text,
       embedding: allDocumentEmbeddings[index],
+      metadata: { documentName: allDocumentNames[index] }
     }));
 
-    const relevantDocs = findRelevantDocuments(queryEmbedding, documentsWithEmbeddings, 20);
+    const relevantDocs = findRelevantDocuments(queryEmbedding, documentsWithEmbeddings, 20, formData.appealType);
 
     console.log(`✅ Selected ${relevantDocs.length} most relevant template documents for appeal generation`);
     console.log(`📝 These templates will guide the structure, depth, and specific elements of the appeal`);
