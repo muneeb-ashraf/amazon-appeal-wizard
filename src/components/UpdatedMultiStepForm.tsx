@@ -367,7 +367,9 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
     // Get corrective actions based on appeal type
     const getCorrectiveActionsForType = () => {
         // For KDP, Relay, and Merch - use different agreement review, not Business Solutions Agreement
-        const isSpecialPlatform = data.appealType === 'kdp-acx-merch' || data.appealType === 'amazon-relay';
+        const isSpecialPlatform = data.appealType === 'kdp-acx-merch' ||
+                                 data.appealType === 'amazon-relay' ||
+                                 data.appealType === 'merch-termination';
 
         // Start with general actions, but exclude Business Solutions Agreement for special platforms
         let actions: string[] = isSpecialPlatform
@@ -404,6 +406,9 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
         }
         if (data.appealType === 'amazon-relay') {
             actions = [...actions, ...CORRECTIVE_ACTIONS.relay];
+        }
+        if (data.appealType === 'merch-termination') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.merch];
         }
 
         return actions;

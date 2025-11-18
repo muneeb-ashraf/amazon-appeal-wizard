@@ -119,6 +119,7 @@ function getAppealAddressee(appealType: string): string {
     'kdp-acx-merch': 'Dear Amazon KDP Team,',
     'amazon-relay': 'Dear Amazon Relay Compliance (ATS),',
     'brand-registry': 'Dear Amazon Brand Registry Team,',
+    'merch-termination': 'Dear Amazon Merch Team,',
   };
 
   return addresseeMap[appealType] || 'Dear Seller Performance Team,';
@@ -457,7 +458,15 @@ function getAppealTypeGuidance(appealType: string): string {
     'amazon-relay':
       'Focus on: Relay-specific policies, no subcontracting, carrier control. PREVENTIVE MEASURES: VIN-match rules (load ID must match unit/VIN), lease/ownership clarity, quarterly compliance audits, Amazon-specific driver training on no re-brokering, document retention (5 years), trip packet uploads (BOL, ELD, receipts, photos).',
     'brand-registry':
-      'Focus on: Brand verification, trademark issues, brand registry requirements. PREVENTIVE MEASURES: Trademark verification procedures, brand documentation systems, registry compliance monitoring.'
+      'Focus on: Brand verification, trademark issues, brand registry requirements. PREVENTIVE MEASURES: Trademark verification procedures, brand documentation systems, registry compliance monitoring.',
+    'safety-suspension':
+      'Focus on: Product safety issues, hazardous materials, safety certifications, consumer safety complaints. PREVENTIVE MEASURES: Product safety testing programs, CPSC compliance verification, safety certification documentation, quality control inspections, hazmat training, safety incident monitoring.',
+    'variation-abuse':
+      'Focus on: Improper parent-child relationships, variation listing manipulation, unrelated products in variations. PREVENTIVE MEASURES: Variation policy compliance checks, parent-child relationship audits, product attribute verification, listing quality control, variation structure validation.',
+    'merch-termination':
+      'Focus on: Merch by Amazon content policy violations, trademark infringement, design guidelines. PREVENTIVE MEASURES: Design originality verification, trademark database checks, content policy reviews, design quality standards, copyright compliance procedures.',
+    'other':
+      'Focus on: Specific violation details, Amazon policy compliance, corrective actions taken. PREVENTIVE MEASURES: General compliance procedures, policy monitoring, staff training, quality control systems, customer service excellence.'
   };
 
   return guidanceMap[appealType] || 'Focus on: Comprehensive understanding of the violation, specific corrective actions, and robust violation-specific preventive measures.';

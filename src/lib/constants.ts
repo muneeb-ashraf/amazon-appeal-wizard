@@ -13,11 +13,11 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'seller-code-conduct',
-    label: 'Seller Account Suspension: Seller Code of Conduct (includes Review Manipulation, Forged Docs, Multiple Accounts)',
+    label: 'Seller Account Suspension: Seller Code of Conduct (includes Review Manipulation, Forged Docs)',
   },
   {
     value: 'related-account',
-    label: 'Seller Account Suspension: Related Account Suspension',
+    label: 'Seller Account Suspension: Related Account Suspension (includes Multiple Accounts)',
   },
   {
     value: 'drop-shipping',
@@ -25,7 +25,7 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'restricted-products',
-    label: 'Seller Account Suspension: Restricted Products Policy Violation (includes Disease Claims)',
+    label: 'Seller Account Suspension: Restricted Products Policy Violation (includes supplements making improper claims)',
   },
   {
     value: 'used-sold-as-new',
@@ -41,7 +41,7 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'verification-failure',
-    label: 'Seller Account Suspension: Account Deactivation - Verification Failure (e.g., Utility Bill, ID)',
+    label: 'Seller Account Suspension: Account Deactivation - Verification Failure (Utility Bill, ID, documentation)',
   },
   {
     value: 'account-compromised',
@@ -53,15 +53,15 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'detail-page-abuse',
-    label: 'Listing/Category Issue: Detail Page Abuse (e.g., Title/Bullet Point Tampering)',
+    label: 'Listing Suspension/Category Issue: Detail Page Abuse (e.g., Title/Bullet Point Tampering)',
   },
   {
     value: 'category-approval',
-    label: 'Listing/Category Issue: Product Group / Category Approval (e.g., Toys, CPC)',
+    label: 'Listing Suspension/Category Issue: Product Group / Category Approval (e.g., Toys, CPC)',
   },
   {
     value: 'kdp-acx-merch',
-    label: 'KDP / ACX / Merch: Content Guideline Violation (e.g., IP, Misleading Title)',
+    label: 'ACX / KDP Termination: Content Guideline Violation (e.g., IP, Misleading Title)',
   },
   {
     value: 'fba-shipping',
@@ -74,6 +74,22 @@ export const APPEAL_TYPES = [
   {
     value: 'brand-registry',
     label: 'Brand Registry: Brand Registry Issue / Error',
+  },
+  {
+    value: 'safety-suspension',
+    label: 'Amazon Safety Suspension Appeals',
+  },
+  {
+    value: 'variation-abuse',
+    label: 'Amazon Variation Abuse Appeals',
+  },
+  {
+    value: 'merch-termination',
+    label: 'Merch by Amazon (MBA) Account Termination',
+  },
+  {
+    value: 'other',
+    label: 'Other',
   },
 ] as const;
 
