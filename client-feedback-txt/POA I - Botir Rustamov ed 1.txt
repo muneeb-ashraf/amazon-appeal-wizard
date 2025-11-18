@@ -1,0 +1,138 @@
+Dear Amazon Relay Team,
+
+My name is Botir Rustamov, and I am the owner and operator of Cargo Express (CGXG). I am writing to formally appeal the suspension of our Amazon Relay account, which occurred following a warning on May 30, 2025, and a final suspension on June 17, 2025, citing an alleged violation of Section I.E.2.b of the Amazon Relay Program Policies Overview (subcontracting/brokering without written authorization).
+
+We take this matter with the utmost seriousness and respectfully request a senior-level review of the documentation and our compliance record. Our company has always operated in good faith, using only our own drivers and company-owned equipment, and we categorically deny engaging in any form of unauthorized brokering.
+
+Root Cause – Misidentification of Our Assets and Drivers as “Sub-Brokering”:
+
+The alleged violation stems from a misunderstanding regarding the assignment of VRIDs 112SXG1R6, 115ZCFR2F, 113QKW9QD, 112CDJMT5, and later 11176Y3NN. Specifically, Amazon flagged irregularities involving driver and tractor combinations, suggesting subcontracting.
+
+In particular, the final suspension on June 17, 2025, referenced VRID 11176Y3NN, connected to Asset PWU9940/OH/4V4NC9EH1PN304083, which was successfully verified by Amazon on March 27, 2025. This vehicle completed a load on May 24, 2025 (Edwardsville, IL to Katy, TX), and was operated by Clive Donovan Fisher, a properly enrolled and authorized driver in our fleet.
+
+All assets involved in these deliveries are owned by Cargo Express and operated by drivers employed or contracted directly under our MC and DOT numbers. We have never leased our authority, outsourced any Amazon load to a third party, or engaged in sub-brokering.
+
+Supporting Documentation Provided:
+
+To demonstrate our compliance, we submitted the following materials promptly and in full:
+
+Bill of Sale and Vehicle Title for VIN 4V4NC9EH1PN304083, confirming ownership by Cargo Express.
+
+Driver onboarding records and background check results for Clive Donovan Fisher.
+
+Vehicle registration and DOT documentation verifying asset and carrier alignment.
+
+Load assignment details and GPS records that corroborate the trip was completed by our driver with our equipment.
+
+Insurance records linking the asset to our policy and MC number.
+
+Despite providing this documentation, we received no confirmation of review or opportunity to clarify the misinterpretation further.
+
+Corrective Actions Taken:
+
+Although we maintain that we did not violate Amazon Relay’s policy, we have proactively taken the following steps to eliminate any chance of confusion or administrative irregularity in the future:
+
+Asset & Driver Synchronization Protocol: We created a cross-verified registry of active drivers and tractors, uploaded regularly into the Relay portal to avoid mismatches with VRID records.
+
+Internal Compliance Officer Assigned: One dedicated team member now oversees all load assignments and Amazon communications to ensure policy adherence.
+
+Load Documentation Hub: All trip documentation (BOLs, ELD logs, GPS data, insurance, and vehicle verification) is stored in a cloud-based dashboard accessible for any verification audit.
+
+Amazon Relay Policy Training: All operations and dispatch team members have undergone re-training on Sections I.E.2.b and related anti-brokering guidelines.
+
+Enhanced Asset Tracking: All tractors and trailers are GPS-tracked with route logs backed up for a minimum of 6 months to ensure verifiable chain-of-custody for every load.
+
+Why Reinstatement is Justified:
+
+We have not assigned, sold, or brokered any Amazon loads.
+
+All questioned deliveries were executed by Cargo Express drivers using Cargo Express-owned equipment.
+
+We submitted comprehensive documentation and ownership records immediately upon receiving Amazon’s May 30th warning and again after the June 17th suspension.
+
+Amazon itself verified the asset in question (PWU9940/OH/4V4NC9EH1PN304083) in March 2025, and that same asset was used for the flagged May 24th load.
+
+We have no prior history of policy violations in our Amazon Relay record.
+
+We have implemented meaningful operational improvements to prevent any future misunderstanding.
+
+Actions Taken to Ensure Compliance with Your Policies in the Future:
+
+
+
+I have carefully reviewed and understood the Amazon Relay Agreement with our team, paying special attention to Section 5b and the related policies.  I have also studied and reviewed with our team your program policies and conditions of use.  
+
+I keep performance metrics within acceptable limits:
+
+BASIC Scores:
+
+Unsafe Driving below 60%
+
+HOS Compliance below 60%
+
+Vehicle Maintenance below 75%
+
+Controlled Substances/Alcohol below 75%
+
+Driver Fitness below 75%
+
+FMCA safety rating of “satisfactory”, “none” or “not rated”.
+
+Performance metrics:
+
+
+
+
+
+Total Rejections/Acceptance Score
+
+90% or greater
+
+On Time Performance
+
+90% or greater
+
+App Usage
+
+99% or greater
+
+Disruption Free Operations
+
+98% or greater
+
+
+
+I always operate as a carrier entity, with an active USDOT and MC number, insurance coverage as required by Amazon Relay, and drivers will always have a valid driver's license and proof of insurance.
+
+I follow Amazon's safety standards, such as wearing a seat belt, avoiding distractions, and complying with speed limits and traffic laws.
+
+I deliver the loads on time and in good condition, and report any issues or delays to Amazon as soon as possible.
+
+I respect Amazon's property and personnel, and follow the instructions and guidelines at each facility.
+
+I keep our business information current and accurate.
+
+I never create another Amazon Relay account to manipulate Amazon’s system or circumvent any restrictions.
+
+In light of our clear compliance history and the corrective measures detailed above, we respectfully request the following:
+
+Senior-level re-investigation of the documents provided and load execution history.
+
+Immediate reactivation of our Amazon Relay account.
+
+Confirmation that Cargo Express (CGXG) remains in good standing with all performance and policy expectations fully met.
+
+We value our partnership with Amazon Relay and remain fully committed to operating with the highest degree of transparency, integrity, and professionalism. We are confident that once our materials are reviewed by an experienced account specialist, the facts will clearly show there was no brokering or policy violation.
+
+Thank you for your time and thoughtful consideration of our appeal.
+
+Sincerely,
+
+Botir Rustamov
+
+Cargo Express (CGXG)
+
+cargoexpressbol@gmail.com
+
+
+

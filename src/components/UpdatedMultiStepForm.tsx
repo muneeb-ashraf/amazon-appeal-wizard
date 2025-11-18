@@ -540,14 +540,14 @@ const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
                         type="file"
                         id="documents"
                         multiple
-                        accept=".pdf,.png,.jpg,.jpeg,.docx,.txt"
+                        accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.xlsx,.xls,.csv"
                         onChange={handleFileUpload}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50 hover:bg-indigo-50/30">
                         <UploadIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                         <p className="text-slate-600 font-medium mb-2">Click to upload or drag and drop</p>
-                        <p className="text-xs text-slate-500">PDF, PNG, JPG, DOCX files up to 10MB each</p>
+                        <p className="text-xs text-slate-500">PDF, PNG, JPG, DOCX, XLSX, CSV, TXT files up to 10MB each</p>
                     </div>
                 </div>
 

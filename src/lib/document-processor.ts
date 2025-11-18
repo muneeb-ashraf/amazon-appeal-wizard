@@ -3,6 +3,8 @@
 // ============================================================================
 
 import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, getS3Bucket } from './aws-config';
 
@@ -16,6 +18,67 @@ export async function convertDocxToText(buffer: Buffer): Promise<string> {
   } catch (error) {
     console.error('Error converting DOCX to text:', error);
     throw new Error('Failed to convert DOCX file to text');
+  }
+}
+
+/**
+ * Convert Excel file (XLSX/XLS) to plain text
+ */
+export async function convertExcelToText(buffer: Buffer): Promise<string> {
+  try {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    let textContent = '';
+
+    // Process each sheet
+    workbook.SheetNames.forEach((sheetName, index) => {
+      const worksheet = workbook.Sheets[sheetName];
+
+      // Add sheet name as header
+      if (workbook.SheetNames.length > 1) {
+        textContent += `\n=== Sheet: ${sheetName} ===\n`;
+      }
+
+      // Convert to CSV format first, then clean up
+      const csvData = XLSX.utils.sheet_to_csv(worksheet);
+      textContent += csvData + '\n';
+    });
+
+    return textContent.trim();
+  } catch (error) {
+    console.error('Error converting Excel to text:', error);
+    throw new Error('Failed to convert Excel file to text');
+  }
+}
+
+/**
+ * Convert CSV file to plain text (with better formatting)
+ */
+export async function convertCsvToText(buffer: Buffer): Promise<string> {
+  try {
+    const csvString = buffer.toString('utf-8');
+
+    return new Promise((resolve, reject) => {
+      Papa.parse(csvString, {
+        complete: (results) => {
+          try {
+            // Convert parsed data back to readable text format
+            const rows = results.data as string[][];
+            const textContent = rows
+              .map(row => row.join(', '))
+              .join('\n');
+            resolve(textContent);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        error: (error: Error) => {
+          reject(error);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error converting CSV to text:', error);
+    throw new Error('Failed to convert CSV file to text');
   }
 }
 
@@ -74,27 +137,49 @@ export async function uploadToS3(
 }
 
 /**
- * Process a DOCX document: download from S3, convert to text, upload text version
+ * Process a document: download from S3, convert to text based on file type, upload text version
+ * Supports: DOCX, XLSX, XLS, CSV, TXT
  */
 export async function processDocument(s3Key: string): Promise<{
   textContent: string;
   textS3Key: string;
 }> {
   try {
-    // Download the DOCX file
-    const docxBuffer = await downloadFromS3(s3Key);
-    
-    // Convert to text
-    const textContent = await convertDocxToText(docxBuffer);
-    
-    // Create the TXT S3 key - replace 'documents/' with 'documents-txt/' and .docx with .txt
+    // Download the file
+    const fileBuffer = await downloadFromS3(s3Key);
+
+    // Determine file type from extension
+    const extension = s3Key.toLowerCase().split('.').pop() || '';
+    let textContent = '';
+    let outputExtension = '.txt';
+
+    // Convert based on file type
+    switch (extension) {
+      case 'docx':
+        textContent = await convertDocxToText(fileBuffer);
+        break;
+      case 'xlsx':
+      case 'xls':
+        textContent = await convertExcelToText(fileBuffer);
+        break;
+      case 'csv':
+        textContent = await convertCsvToText(fileBuffer);
+        break;
+      case 'txt':
+        textContent = fileBuffer.toString('utf-8');
+        break;
+      default:
+        throw new Error(`Unsupported file type: ${extension}`);
+    }
+
+    // Create the TXT S3 key - replace 'documents/' with 'documents-txt/' and change extension to .txt
     const textS3Key = s3Key
       .replace('documents/', 'documents-txt/')
-      .replace('.docx', '.txt');
-    
+      .replace(new RegExp(`\\.${extension}$`), '.txt');
+
     // Upload text version to S3
     await uploadToS3(textS3Key, textContent, 'text/plain');
-    
+
     return {
       textContent,
       textS3Key,
@@ -107,16 +192,21 @@ export async function processDocument(s3Key: string): Promise<{
 
 /**
  * Get all document texts for embedding
+ * Handles multiple file types: DOCX, XLSX, XLS, CSV, TXT
  */
 export async function getAllDocumentTexts(documentKeys: string[]): Promise<string[]> {
   const texts: string[] = [];
-  
+
   for (const key of documentKeys) {
     try {
-      // Convert to TXT path: documents/ -> documents-txt/ and .docx -> .txt
+      // Determine the extension
+      const extension = key.toLowerCase().split('.').pop() || '';
+
+      // Convert to TXT path: documents/ -> documents-txt/ and change extension to .txt
       const txtKey = key
         .replace('documents/', 'documents-txt/')
-        .replace('.docx', '.txt');
+        .replace(new RegExp(`\\.${extension}$`), '.txt');
+
       const buffer = await downloadFromS3(txtKey);
       texts.push(buffer.toString('utf-8'));
     } catch (error) {
@@ -124,6 +214,6 @@ export async function getAllDocumentTexts(documentKeys: string[]): Promise<strin
       // Continue with other documents
     }
   }
-  
+
   return texts;
 }

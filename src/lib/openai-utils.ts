@@ -112,6 +112,19 @@ export async function generateAppealLetter(
 }
 
 /**
+ * Get the correct addressee based on appeal type
+ */
+function getAppealAddressee(appealType: string): string {
+  const addresseeMap: Record<string, string> = {
+    'kdp-acx-merch': 'Dear Amazon KDP Team,',
+    'amazon-relay': 'Dear Amazon Relay Compliance (ATS),',
+    'brand-registry': 'Dear Amazon Brand Registry Team,',
+  };
+
+  return addresseeMap[appealType] || 'Dear Seller Performance Team,';
+}
+
+/**
  * Section definitions for chunked appeal generation
  */
 export const APPEAL_SECTIONS = [
@@ -119,7 +132,7 @@ export const APPEAL_SECTIONS = [
     id: 1,
     name: 'Opening & Introduction',
     prompt: `Generate ONLY the opening section of the appeal letter (greeting, introduction, and immediate context about the issue). Include:
-- Professional greeting (Dear Amazon Seller Performance Team,)
+- Professional greeting addressed to the CORRECT TEAM based on the appeal type
 - Brief introduction identifying the seller
 - Clear statement of the issue/suspension
 - Reference to any case numbers or ASINs (ONLY if provided)
@@ -128,7 +141,8 @@ Keep this section concise (2-3 paragraphs).
 CRITICAL RULES:
 - DO NOT use placeholder text like [insert case number], [add details], etc.
 - If specific information (like case numbers, dates) is not provided, simply don't mention it
-- Use only the actual information provided in the user data`,
+- Use only the actual information provided in the user data
+- Use the CORRECT addressee for the appeal type`,
     maxTokens: 700
   },
   {
@@ -170,21 +184,36 @@ CRITICAL RULES:
   {
     id: 4,
     name: 'Preventive Measures',
-    prompt: `Generate ONLY the preventive measures section. Include:
-- Clear section heading: "Preventive Measures to Avoid Future Issues" (plain text, not markdown)
-- Organized preventive steps by category (Sourcing, Listings, Training, Monitoring)
-- 10-15 detailed preventive steps total
-- Future monitoring commitments
-- Quality control processes
-Make this comprehensive (4-5 paragraphs covering all categories).
+    prompt: `Generate ONLY the preventive measures section. This is CRITICAL: The preventive measures MUST be specifically tailored to the violation type and MUST directly relate to the corrective actions already taken.
+
+IMPORTANT: DO NOT use generic categories like "Sourcing, Listings, Training, Monitoring" unless they are specifically relevant to this appeal type.
+
+Instead, create SPECIFIC preventive measure categories that match the violation:
+- For Related Accounts: Focus on account security, password policies, access controls, two-step verification, separate computers, AWS service provider procedures
+- For KDP/Publishing: Focus on plagiarism checks, metadata guidelines, title/cover similarity checks, content monitoring, professional editing
+- For Relay: Focus on VIN-match rules, carrier documentation, ELD compliance, driver training, trip packet procedures, no sub-brokering controls
+- For Review Manipulation: Focus on internal communication only, no third-party review services, no incentivized reviews, monitoring customer feedback
+- For Drop-Shipping: Focus on seller-of-record compliance, packing slip requirements, supplier quality control, inventory management
+- For Restricted Products: Focus on compliance verification, product certifications, label sanitization, medical claims removal, safety testing
+- For Sales Velocity: Focus on sales monitoring, inventory accuracy, no rank manipulation, no fake orders
+- For ODR/Condition Complaints: Focus on inventory quality control, packing/shipping procedures, warehouse supervision
+- For Verification: Focus on document maintenance, regular policy monitoring, customer service excellence
+
+Structure:
+- Clear section heading: "Preventive Measures to Avoid Future Issues" or similar (plain text, not markdown)
+- Organize by 2-4 SPECIFIC categories directly related to the violation (NOT generic categories)
+- Each category should have multiple detailed, concrete preventive steps
+- Total 10-15 specific preventive measures
+- All measures must logically follow from and reinforce the corrective actions
 
 CRITICAL RULES:
-- DO NOT use markdown headers (###) or list formatting (- bullets)
-- DO NOT add section break markers like "---END OF SECTION---"
-- Write in paragraph form with natural category transitions
+- Preventive measures MUST be violation-specific, NOT generic
+- Link each preventive category directly to the root cause and corrective actions
+- DO NOT use markdown headers (###) or bullet formatting (-)
+- Write in paragraph form with clear category transitions
 - Use future tense (will implement, will ensure, etc.)
-- Keep it comprehensive but well-organized`,
-    maxTokens: 900
+- Make it as detailed and specific as the template documents for this appeal type`,
+    maxTokens: 1000
   },
   {
     id: 5,
@@ -193,26 +222,67 @@ CRITICAL RULES:
 - Professional closing statement expressing commitment
 - Request for reinstatement/resolution
 - Appreciation for consideration
-- Closing salutation (e.g., "Best regards," or "Sincerely,")
+- Closing salutation (e.g., "Thank you for your consideration," or "Sincerely,")
 - Full signature block with EACH item on a SEPARATE LINE:
-  * Full name (on its own line)
-  * Business/store name (on its own line)
+  * Full name / Business name (on its own line)
+  * Business/store name (on its own line, if different from above)
   * Merchant Token ID: [value] (on its own line, ONLY if provided - do not include if not available)
   * Email address (on its own line)
   * DO NOT include phone number or any placeholder text like "[Contact phone not provided]"
 
-CRITICAL: Format the signature block with line breaks between each element. Example:
-Best regards,
+CRITICAL SIGNATURE FORMATTING REQUIREMENTS:
+1. Every appeal MUST be signed with at minimum: Name, Company/Store Name, and Email
+2. If Merchant Token/Seller ID is provided, include it as "Merchant Token ID: [value]" or "Seller ID: [value]"
+3. Each element must be on its own separate line
+4. DO NOT use placeholder brackets or missing information messages
+5. Use EXACT formatting as shown in examples below:
+
+Example 1 (with Merchant Token):
+Thank you for your consideration,
 
 John Smith
 ABC Store LLC
 Merchant Token ID: A1234567890
 john@example.com
 
-Keep this professional and concise (2-3 paragraphs plus signature).`,
+Example 2 (without Merchant Token):
+Sincerely,
+
+CRB Ventures
+crb3312@gmail.com
+
+Example 3 (with Seller ID):
+Thank you for your consideration,
+
+Francesco Cecchini
+LeisureImpexInc
+Merchant Token ID: A1RTA6DL4Z5BYF
+leisureimpexinc@gmail.com
+
+Keep the closing professional and concise (2-3 paragraphs plus signature).`,
     maxTokens: 500
   }
 ];
+
+/**
+ * Get adjusted max tokens for KDP appeals (which have 4,000 character limit)
+ * Roughly 1 token = 4 characters, so 4000 chars = ~1000 tokens total
+ */
+function getAdjustedMaxTokens(sectionId: number, baseMaxTokens: number, appealType: string): number {
+  if (appealType === 'kdp-acx-merch') {
+    // KDP has 4,000 character limit (≈1,000 tokens total)
+    // Distribute across sections: Opening(150), Root(200), Corrective(250), Preventive(250), Closing(150)
+    const kdpTokenLimits: Record<number, number> = {
+      1: 150,  // Opening
+      2: 200,  // Root Cause
+      3: 250,  // Corrective
+      4: 250,  // Preventive
+      5: 150,  // Closing
+    };
+    return kdpTokenLimits[sectionId] || Math.floor(baseMaxTokens * 0.4);
+  }
+  return baseMaxTokens;
+}
 
 /**
  * Generate a single section of the appeal letter
@@ -233,16 +303,27 @@ export async function generateAppealSection(
 
     console.log(`📝 Generating section ${sectionId}/5: ${section.name}`);
 
+    // Check if this is a KDP appeal
+    const isKDP = formData.appealType === 'kdp-acx-merch';
+    const adjustedMaxTokens = getAdjustedMaxTokens(sectionId, section.maxTokens, formData.appealType);
+
+    if (isKDP) {
+      console.log(`⚠️  KDP Appeal - Using reduced token limit: ${adjustedMaxTokens} (4,000 character limit)`);
+    }
+
     // Create context from relevant documents
     const context = relevantDocuments.join('\n\n---TEMPLATE DOCUMENT---\n\n');
 
     // Build user message from form data
     const userMessage = buildUserMessageFromFormData(formData);
 
+    // Get correct addressee for this appeal type
+    const correctAddressee = getAppealAddressee(formData.appealType);
+
     // Build system prompt with context
     const systemPrompt = `You are an expert Amazon seller appeal writer with deep knowledge of Amazon's policies and successful appeal strategies.
 
-You have access to successful Amazon appeal template documents below. Study their style, depth, and structure.
+You have access to successful Amazon appeal template documents below. Study their style, depth, and structure CAREFULLY. Pay special attention to how preventive measures are SPECIFICALLY TAILORED to each violation type in the templates.
 
 TEMPLATE DOCUMENTS:
 ${context}
@@ -253,7 +334,16 @@ ${userMessage}
 ${previousSections.length > 0 ? `PREVIOUSLY GENERATED SECTIONS:
 ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 
-` : ''}IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist.`;
+` : ''}CRITICAL INSTRUCTIONS FOR THIS APPEAL:
+1. Appeal Type: ${formData.appealType}
+2. Correct Addressee: ${correctAddressee}
+3. If generating the opening section, use: ${correctAddressee}
+4. If generating preventive measures, make them VIOLATION-SPECIFIC (not generic)
+5. Link preventive measures directly to the corrective actions taken
+6. Study the uploaded documents (if any) to understand the specific case details
+7. Match the depth, specificity, and structure of similar templates for "${formData.appealType}"
+${isKDP ? '8. **KDP APPEALS HAVE 4,000 CHARACTER LIMIT** - Keep this section concise and focused\n' : ''}
+IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist.`;
 
     const stream = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o-mini', // Fast model to stay under timeout
@@ -262,7 +352,7 @@ ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
         { role: 'user', content: section.prompt },
       ],
       temperature: 0.85,
-      max_tokens: section.maxTokens,
+      max_tokens: adjustedMaxTokens,
       stream: true,
     }, {
       timeout: 25000, // 25 second timeout (leaves 5s buffer for Lambda)
@@ -331,45 +421,45 @@ export async function generateAppealLetterWithStreaming(
  */
 function getAppealTypeGuidance(appealType: string): string {
   const guidanceMap: Record<string, string> = {
-    'inauthenticity-supply-chain': 
-      'Focus on: Supply chain documentation (invoices, LOA), authorized distributor verification, retail arbitrage issues. Often requires detailed supplier information and proof of authenticity.',
-    'intellectual-property': 
-      'Focus on: Trademark/copyright/patent details, USPTO verification, authorized reseller proof, retraction requests, DMCA counter-notices. May need attorney involvement.',
-    'seller-code-conduct': 
-      'Focus on: Review manipulation, multiple accounts, forged documents. Requires detailed acknowledgment of policy violations and concrete preventive systems.',
-    'related-account': 
-      'Focus on: Related account identification, explanation of relationship, closure or reinstatement of related account.',
-    'drop-shipping': 
-      'Focus on: Fulfillment model changes, inventory management, shipping compliance, supplier documentation.',
-    'restricted-products': 
-      'Focus on: Product compliance, certifications (COA, GMP), disease claims removal, ingredient verification, regulatory approvals.',
-    'used-sold-as-new': 
-      'Focus on: Product condition, quality control, sourcing verification, customer experience improvements.',
-    'high-cancellation': 
-      'Focus on: Inventory management, fulfillment processes, order fulfillment rates, sales velocity controls.',
-    'marketplace-pricing': 
-      'Focus on: Pricing strategies, fair market value, pricing errors correction, automated pricing tool issues.',
-    'verification-failure': 
-      'Focus on: Document verification (utility bill, ID, bank statement), address matching, document validity.',
-    'account-compromised': 
-      'Focus on: Account security, unauthorized access, password changes, security measures implementation.',
-    'deceptive-activity': 
-      'Focus on: Business practices review, legal compliance, fraud prevention measures.',
-    'detail-page-abuse': 
-      'Focus on: Listing compliance (title, bullets, images), style guide adherence, UPC validity.',
-    'category-approval': 
-      'Focus on: Category requirements (CPC, lab reports), product certifications, safety documentation.',
-    'kdp-acx-merch': 
-      'Focus on: Content guidelines, IP compliance, misleading content removal, publishing platform policies.',
-    'fba-shipping': 
-      'Focus on: FBA requirements, barcode compliance, packaging standards, shipping violations.',
-    'amazon-relay': 
-      'Focus on: Relay-specific policies, subcontracting issues, driver compliance.',
-    'brand-registry': 
-      'Focus on: Brand verification, trademark issues, brand registry requirements.'
+    'inauthenticity-supply-chain':
+      'Focus on: Supply chain documentation (invoices, LOA), authorized distributor verification, retail arbitrage issues. PREVENTIVE MEASURES: Supplier vetting procedures, invoice documentation systems, LOA requirements, test buys, direct brand contact procedures.',
+    'intellectual-property':
+      'Focus on: Trademark/copyright/patent details, USPTO verification, authorized reseller proof, retraction requests. PREVENTIVE MEASURES: USPTO database checks, copyright office searches, IP attorney consultations, brand authorization procedures.',
+    'seller-code-conduct':
+      'Focus on: Review manipulation, multiple accounts, forged documents. PREVENTIVE MEASURES: Internal communication policies, no third-party review services, staff training on review policies, monthly monitoring programs.',
+    'related-account':
+      'Focus on: Related account identification, explanation of relationship, closure or reinstatement. PREVENTIVE MEASURES: Account access restrictions, password policies with two-step verification, separate computers, AWS service provider procedures, frequent password changes, physical access controls.',
+    'drop-shipping':
+      'Focus on: Fulfillment model changes, seller-of-record compliance, packing slip requirements. PREVENTIVE MEASURES: Drop-shipping quality control (packing slips showing seller name), supplier compliance procedures, inventory quality control, weekly management meetings.',
+    'restricted-products':
+      'Focus on: Product compliance, certifications (COA, GMP, FDA 510k), disease claims removal. PREVENTIVE MEASURES: Listings quality control (sanitizing descriptions), label warnings, compliance verification, safety testing programs, QC supervisor appointment.',
+    'used-sold-as-new':
+      'Focus on: Product condition, quality control, customer complaints. PREVENTIVE MEASURES: Inventory quality control (spot-checking lots), packing and shipping procedures, warehouse supervision, customer experience monitoring.',
+    'high-cancellation':
+      'Focus on: Inventory management, fulfillment processes, order fulfillment rates, sales velocity. PREVENTIVE MEASURES: Sales velocity monitoring, inventory accuracy checks, monthly physical inventory, listing monitoring.',
+    'marketplace-pricing':
+      'Focus on: Pricing strategies, fair market value, automated pricing tool issues. PREVENTIVE MEASURES: Pricing monitoring systems, fair market value checks, automated tool oversight.',
+    'verification-failure':
+      'Focus on: Document verification (utility bill, ID, bank statement), address matching. PREVENTIVE MEASURES: Document maintenance, regular policy monitoring, prompt response to verification requests.',
+    'account-compromised':
+      'Focus on: Account security, unauthorized access, password changes. PREVENTIVE MEASURES: Strong password policies, two-step verification, monitoring account activity, security audits.',
+    'deceptive-activity':
+      'Focus on: Business practices review, legal compliance, fraud prevention. PREVENTIVE MEASURES: Compliance programs, legal review procedures, transparency policies.',
+    'detail-page-abuse':
+      'Focus on: Listing compliance (title, bullets, images), style guide adherence. PREVENTIVE MEASURES: Listing quality control, compliance manager approval, detail page monitoring, style guide training.',
+    'category-approval':
+      'Focus on: Category requirements (CPC, lab reports), product certifications. PREVENTIVE MEASURES: Product certification procedures, lab testing programs, category requirement checklists.',
+    'kdp-acx-merch':
+      'Focus on: Content guidelines, IP compliance, misleading metadata. PREVENTIVE MEASURES: Plagiarism checks (PlagScan), title/cover similarity searches, US Copyright Office database checks, metadata guidelines review, professional editing, customer review monitoring. NOTE: KDP appeals have 4,000 character limit.',
+    'fba-shipping':
+      'Focus on: FBA requirements, barcode compliance, packaging standards. PREVENTIVE MEASURES: Barcode verification procedures, packaging standard checklists, FBA prep compliance.',
+    'amazon-relay':
+      'Focus on: Relay-specific policies, no subcontracting, carrier control. PREVENTIVE MEASURES: VIN-match rules (load ID must match unit/VIN), lease/ownership clarity, quarterly compliance audits, Amazon-specific driver training on no re-brokering, document retention (5 years), trip packet uploads (BOL, ELD, receipts, photos).',
+    'brand-registry':
+      'Focus on: Brand verification, trademark issues, brand registry requirements. PREVENTIVE MEASURES: Trademark verification procedures, brand documentation systems, registry compliance monitoring.'
   };
 
-  return guidanceMap[appealType] || 'Focus on: Comprehensive understanding of the violation, specific corrective actions, and robust preventive measures.';
+  return guidanceMap[appealType] || 'Focus on: Comprehensive understanding of the violation, specific corrective actions, and robust violation-specific preventive measures.';
 }
 
 /**
@@ -464,14 +554,16 @@ function buildUserMessageFromFormData(formData: AppealFormData): string {
     parts.push('');
   }
 
-  // Supporting documents
+  // Supporting documents - EMPHASIZE THESE
   if (formData.uploadedDocuments.length > 0) {
-    parts.push(`=== SUPPORTING DOCUMENTS TO REFERENCE ===`);
+    parts.push(`\n=== IMPORTANT: SUPPORTING DOCUMENTS PROVIDED ===`);
+    parts.push(`The seller has uploaded the following documents. PAY CLOSE ATTENTION to these as they contain critical evidence and details that should be referenced in the appeal:`);
     formData.uploadedDocuments.forEach((doc) => parts.push(`• ${doc.type}: ${doc.fileName}`));
+    parts.push(`\nThese documents demonstrate the seller's preparation and should be mentioned appropriately in the appeal (e.g., "See attached invoice", "Please review the attached documentation", etc.)`);
     parts.push('');
   }
 
-  parts.push(`\n=== GENERATION INSTRUCTIONS ===`);
+  parts.push(`\n=== CRITICAL GENERATION INSTRUCTIONS ===`);
   parts.push(`Create a comprehensive, professional appeal letter that:`);
   parts.push(`1. Follows the EXACT structure, depth, and formatting of similar templates for "${formData.appealType}"`);
   parts.push(`2. Includes ALL elements present in similar templates (documentation lists, supplier details, policy citations, multi-step processes, performance metrics, etc.)`);
@@ -479,8 +571,13 @@ function buildUserMessageFromFormData(formData: AppealFormData): string {
   parts.push(`4. Provides the same level of detail - if templates have 10-15 preventive measures organized by category, match that depth`);
   parts.push(`5. Includes proper opening address, detailed root cause narrative, specific actions taken, comprehensive preventive measures, and professional closing with full contact information`);
   parts.push(`6. References specific policies, standards, or regulations as shown in similar templates`);
-  parts.push(`7. Organizes preventive measures by category (e.g., "Sourcing Quality Control:", "Listings Quality Control:", etc.) as templates do`);
-  parts.push(`\nDo NOT create a generic or simplified appeal. Match the comprehensive nature of the template documents provided.`);
+  parts.push(`7. **MOST IMPORTANT**: Preventive measures MUST be specifically tailored to THIS violation type - NOT generic categories`);
+  parts.push(`   - Study the preventive measures in the templates for "${formData.appealType}"`);
+  parts.push(`   - Link each preventive measure category directly to the corrective actions taken`);
+  parts.push(`   - For example: If corrective actions mention shipping documentation, preventive measures should detail shipping compliance procedures`);
+  parts.push(`   - DO NOT use generic "Sourcing, Listings, Training, Monitoring" unless those are specifically relevant to ${formData.appealType}`);
+  parts.push(`\n8. Reference the uploaded documents when appropriate to strengthen the appeal`);
+  parts.push(`\nDo NOT create a generic or simplified appeal. Match the comprehensive, violation-specific nature of the template documents provided.`);
 
   return parts.join('\n');
 }
