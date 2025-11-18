@@ -194,13 +194,13 @@ const Step2_AccountDetails = ({ data, setData }: StepProps) => {
             <p className="text-slate-600 text-lg mb-8">Your information is used only to generate your appeal</p>
             <div className="space-y-6">
                 <div>
-                    <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name / Business Name *</label>
+                    <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name *</label>
                     <StyledInput
                         type="text"
                         id="fullName"
                         value={data.fullName}
                         onChange={e => setData({ ...data, fullName: e.target.value })}
-                        placeholder="e.g., Jennifer Smith or FloLeaf Naturals LLC"
+                        placeholder="e.g., Jennifer Smith"
                         required
                     />
                 </div>
@@ -211,7 +211,7 @@ const Step2_AccountDetails = ({ data, setData }: StepProps) => {
                         id="storeName"
                         value={data.storeName}
                         onChange={e => setData({ ...data, storeName: e.target.value })}
-                        placeholder="e.g., BNC Media LLC"
+                        placeholder="e.g., FloLeaf Naturals LLC or BNC Media"
                         required
                     />
                 </div>
@@ -366,8 +366,16 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
 
     // Get corrective actions based on appeal type
     const getCorrectiveActionsForType = () => {
-        let actions: string[] = [...CORRECTIVE_ACTIONS.general];
-        
+        // For KDP, Relay, and Merch - use different agreement review, not Business Solutions Agreement
+        const isSpecialPlatform = data.appealType === 'kdp-acx-merch' ||
+                                 data.appealType === 'amazon-relay' ||
+                                 data.appealType === 'merch-termination';
+
+        // Start with general actions, but exclude Business Solutions Agreement for special platforms
+        let actions: string[] = isSpecialPlatform
+            ? CORRECTIVE_ACTIONS.general.filter(action => !action.includes('Business Solutions Agreement'))
+            : [...CORRECTIVE_ACTIONS.general];
+
         if (data.appealType.includes('inauthenticity') || data.appealType.includes('supply-chain')) {
             actions = [...actions, ...CORRECTIVE_ACTIONS.inauthenticity];
         }
@@ -391,6 +399,16 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
         }
         if (data.appealType === 'category-approval') {
             actions = [...actions, ...CORRECTIVE_ACTIONS.categoryApproval];
+        }
+        // Add platform-specific agreement reviews
+        if (data.appealType === 'kdp-acx-merch') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.kdpAcxMerch];
+        }
+        if (data.appealType === 'amazon-relay') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.relay];
+        }
+        if (data.appealType === 'merch-termination') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.merch];
         }
 
         return actions;
@@ -540,14 +558,14 @@ const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
                         type="file"
                         id="documents"
                         multiple
-                        accept=".pdf,.png,.jpg,.jpeg,.docx,.txt"
+                        accept=".pdf,.png,.jpg,.jpeg,.docx,.txt,.xlsx,.xls,.csv"
                         onChange={handleFileUpload}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50 hover:bg-indigo-50/30">
                         <UploadIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
                         <p className="text-slate-600 font-medium mb-2">Click to upload or drag and drop</p>
-                        <p className="text-xs text-slate-500">PDF, PNG, JPG, DOCX files up to 10MB each</p>
+                        <p className="text-xs text-slate-500">PDF, PNG, JPG, DOCX, XLSX, CSV, TXT files up to 10MB each</p>
                     </div>
                 </div>
 
@@ -1141,7 +1159,7 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
                     </li>
                     <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-xs">3</span>
-                        <span><strong>Navigate to Appeals:</strong> Go to <span className="font-semibold">Performance → Account Health → Appeals</span> or check your Performance Notifications</span>
+                        <span><strong>Navigate to Appeals:</strong> Go to <span className="font-semibold">Performance → Account Health → Appeals</span> or check your Performance Notifications. <span className="font-semibold">If this option is not available to you, open a case with Seller Support and submit the POA as an attachment.</span></span>
                     </li>
                     <li className="flex items-start gap-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-xs">4</span>

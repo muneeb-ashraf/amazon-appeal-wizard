@@ -1,0 +1,82 @@
+Dear Amazon Relay Compliance (ATS),
+
+We received your suspension notice dated 06/17/2025 and the second reminder shown in the attached email screenshot. We understand you require supporting documentation. 
+
+amazonsellers.attorney Mail - F…
+
+1) What happened (our understanding)
+
+Amazon flagged “load irregularities” suggesting double brokering. We do not broker freight. All Amazon Relay loads were hauled by Cargo Express LLC under our control, using our apportioned, insured equipment and our drivers.
+
+Our fleet includes units registered to Cargo Express LLC under the Ohio IRP Cab Cards, including VIN 4V4NC9EH1PN304083 (2023 Volvo, Unit 808); VIN 1XPBDP9X6ND799884 (2022 Peterbilt, Unit 809); and VIN 1XKYDP9X6LJ367763 (2020 Kenworth, Unit 805). Each Cab Card lists Cargo Express LLC as Registrant/Operator and authorizes operation in IRP jurisdictions. 
+
+MergedFiles_2_CredenetialReport…
+
+Our insurance Certificate shows active motor carrier coverage for Cargo Express LLC for the relevant period. 
+
+CARGO EXPRESS LLC
+
+We also hold the bill of sale/title proof for VIN 4V4NC9EH1PN304083, which we referenced in our prior email to you. 
+
+amazonsellers.attorney Mail - F…
+
+A separate packet labeled “PROOF CARGO” contains supporting identity/operations materials. 
+
+PROOF CARGO
+
+Why a misinterpretation may have occurred: One IRP record reflects SFK Leasing Inc. dba Fleet Financial as owner/lessor on the Volvo VIN. That is a financing/lease notation, not another carrier operating your load. The same IRP card designates Cargo Express LLC as the Registrant/Operator and “Motor Carrier responsible for safety,” which is consistent with lawful carrier-controlled operation—not brokering. 
+
+MergedFiles_2_CredenetialReport…
+
+2) What we have changed (corrective steps already taken)
+
+Paperwork alignment: We have standardized Rate Confirmation → Dispatch → BOL/Proof of Delivery to always display Cargo Express LLC as carrier of record with unit # and VIN on the face of the BOL and on the Relay app upload.
+
+Trip packet uploads: For each Relay load we now upload in one PDF: (a) BOL/Pod, (b) geotagged ELD location history, (c) fuel/scale/toll receipts tied to the same VIN, and (d) truck/trailer photos at pickup and delivery with time stamps.
+
+No third-party dispatching: We have terminated any outside dispatch arrangements that could look like a pass-through. All dispatch is in-house under a written SOP.
+
+3) Long-term prevention (process going forward)
+
+VIN-match rule: The load ID must match the unit number and VIN on the BOL, ELD log, and photos before dispatch closes. Supervisor sign-off required.
+
+Lease/ownership clarity: Where a unit is leased/financed, we will attach the IRP Cab Card (showing Cargo Express as Registrant/Operator) with the load documents so there is no confusion about carrier control. 
+
+MergedFiles_2_CredenetialReport…
+
+Quarterly compliance audit: Internal audits of 10% of trips: verify ELD trace, BOL chain of custody, insurance in force, and driver qualification file.
+
+Amazon-specific training: Drivers and dispatch trained on Amazon policy prohibiting re-brokering; any subcontract request is categorically refused and escalated to management.
+
+Document retention: Maintain all trip packets for 5 years and provide on request within 24 hours.
+
+4) Documents provided / available
+
+Suspension & reminder emails (dates and case reference). 
+
+amazonsellers.attorney Mail - F…
+
+IRP Cab Cards for VINs 4V4NC9EH1PN304083 / 1XPBDP9X6ND799884 / 1XKYDP9X6LJ367763 naming Cargo Express LLC as Registrant/Operator. 
+
+MergedFiles_2_CredenetialReport…
+
+Insurance COI for operative period. 
+
+CARGO EXPRESS LLC
+
+Bill of sale/title for VIN 4V4NC9EH1PN304083 and related truck proof. 
+
+amazonsellers.attorney Mail - F…
+
+PROOF CARGO packet (identity/operations). 
+
+PROOF CARGO
+
+Trip-level evidence (ELD tracks, BOL/PoD, receipts, photos) — ready to upload for the specific loads you flagged.
+
+Request: Please reinstate Cargo Express LLC (CGXG). The evidence shows we hauled Amazon loads ourselves as the motor carrier in control and did not double broker. We have implemented the above controls to ensure documentation makes this unmistakably clear on every load.
+
+Respectfully,Cargo Express LLC (CGXG)[Contact name & title] • [Phone] • [Email]
+
+
+

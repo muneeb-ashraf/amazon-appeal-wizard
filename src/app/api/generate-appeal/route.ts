@@ -66,6 +66,7 @@ const TEMPLATE_DOCUMENTS = [
 let embeddingsCache: {
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
   lastUpdated: Date;
 } | null = null;
 
@@ -77,6 +78,7 @@ const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 async function getCachedEmbeddings(): Promise<{
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
 }> {
   // Check if cache is valid
   if (
@@ -87,6 +89,7 @@ async function getCachedEmbeddings(): Promise<{
     return {
       documentTexts: embeddingsCache.documentTexts,
       documentEmbeddings: embeddingsCache.documentEmbeddings,
+      documentNames: embeddingsCache.documentNames,
     };
   }
 
@@ -103,11 +106,13 @@ async function getCachedEmbeddings(): Promise<{
       embeddingsCache = {
         documentTexts: cachedFromDb.documentTexts,
         documentEmbeddings: cachedFromDb.documentEmbeddings,
+        documentNames: cachedFromDb.documentNames,
         lastUpdated: new Date(),
       };
       return {
         documentTexts: cachedFromDb.documentTexts,
         documentEmbeddings: cachedFromDb.documentEmbeddings,
+        documentNames: cachedFromDb.documentNames,
       };
     } else {
       console.log('ℹ️  No embeddings found in DynamoDB, will generate fresh');
@@ -126,19 +131,26 @@ async function getCachedEmbeddings(): Promise<{
 
   // Create embeddings
   const documentEmbeddings = await createBatchEmbeddings(documentTexts);
-  
+
   console.log(`Created ${documentEmbeddings.length} embeddings`);
+
+  // Extract document names from TEMPLATE_DOCUMENTS
+  const documentNames = TEMPLATE_DOCUMENTS.map(path => {
+    const parts = path.split('/');
+    return parts[parts.length - 1] || path;
+  });
 
   // Cache in memory only (DynamoDB has 400KB item size limit, so we store individually)
   embeddingsCache = {
     documentTexts,
     documentEmbeddings,
+    documentNames,
     lastUpdated: new Date(),
   };
 
   console.log('✅ Embeddings cached in memory (not saving to DB due to size limits)');
 
-  return { documentTexts, documentEmbeddings };
+  return { documentTexts, documentEmbeddings, documentNames };
 }
 
 /**
@@ -147,6 +159,7 @@ async function getCachedEmbeddings(): Promise<{
 async function getAllDocumentEmbeddingsFromDB(): Promise<{
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
 } | null> {
   try {
     console.log('🔍 Scanning DynamoDB for all document embeddings...');
@@ -170,20 +183,25 @@ async function getAllDocumentEmbeddingsFromDB(): Promise<{
 
     const documentTexts: string[] = [];
     const documentEmbeddings: number[][] = [];
+    const documentNames: string[] = [];
 
     for (const item of result.Items) {
       if (item.textContent && item.embedding) {
         documentTexts.push(item.textContent);
         documentEmbeddings.push(item.embedding);
+        // Extract document name from documentName field or s3Key as fallback
+        const docName = item.documentName || (item.s3Key ? item.s3Key.split('/').pop() : 'Unknown');
+        documentNames.push(docName);
       }
     }
 
-    console.log(`✅ Loaded ${documentTexts.length} texts and ${documentEmbeddings.length} embeddings from DB`);
+    console.log(`✅ Loaded ${documentTexts.length} texts, ${documentEmbeddings.length} embeddings, and ${documentNames.length} names from DB`);
 
     if (documentTexts.length > 0 && documentEmbeddings.length > 0) {
       return {
         documentTexts,
-        documentEmbeddings
+        documentEmbeddings,
+        documentNames
       };
     }
 
@@ -215,22 +233,24 @@ export async function POST(request: NextRequest) {
     try {
       // Get or generate cached embeddings
       console.log('🔄 Calling getCachedEmbeddings()...');
-      const { documentTexts, documentEmbeddings } = await getCachedEmbeddings();
+      const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
 
       console.log(`📊 Received from getCachedEmbeddings:`);
       console.log(`   - documentTexts: ${documentTexts?.length || 0} items`);
       console.log(`   - documentEmbeddings: ${documentEmbeddings?.length || 0} items`);
+      console.log(`   - documentNames: ${documentNames?.length || 0} items`);
       console.log(`   - documentTexts is array: ${Array.isArray(documentTexts)}`);
       console.log(`   - documentEmbeddings is array: ${Array.isArray(documentEmbeddings)}`);
 
       if (documentTexts.length > 0 && documentEmbeddings.length > 0) {
         console.log(`✅ Using ${documentTexts.length} template documents for AI generation`);
-        
+
         // Generate appeal using AI with context
         appealText = await generateAppealWithContext(
           formData,
           documentTexts,
-          documentEmbeddings
+          documentEmbeddings,
+          documentNames
         );
       } else {
         console.warn('No template documents available, using fallback');

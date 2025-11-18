@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.log(`🚀 Generating section ${sectionId}/5: ${section?.name}`);
 
     // Get cached embeddings
-    const { documentTexts, documentEmbeddings } = await getCachedEmbeddings();
+    const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
 
     if (documentTexts.length === 0) {
       return new Response(
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       formData,
       documentTexts,
       documentEmbeddings,
+      documentNames,
       previousSections
     );
 

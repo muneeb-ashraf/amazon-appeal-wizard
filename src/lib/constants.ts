@@ -13,11 +13,11 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'seller-code-conduct',
-    label: 'Seller Account Suspension: Seller Code of Conduct (includes Review Manipulation, Forged Docs, Multiple Accounts)',
+    label: 'Seller Account Suspension: Seller Code of Conduct (includes Review Manipulation, Forged Docs)',
   },
   {
     value: 'related-account',
-    label: 'Seller Account Suspension: Related Account Suspension',
+    label: 'Seller Account Suspension: Related Account Suspension (includes Multiple Accounts)',
   },
   {
     value: 'drop-shipping',
@@ -25,7 +25,7 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'restricted-products',
-    label: 'Seller Account Suspension: Restricted Products Policy Violation (includes Disease Claims)',
+    label: 'Seller Account Suspension: Restricted Products Policy Violation (includes supplements making improper claims)',
   },
   {
     value: 'used-sold-as-new',
@@ -41,7 +41,7 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'verification-failure',
-    label: 'Seller Account Suspension: Account Deactivation - Verification Failure (e.g., Utility Bill, ID)',
+    label: 'Seller Account Suspension: Account Deactivation - Verification Failure (Utility Bill, ID, documentation)',
   },
   {
     value: 'account-compromised',
@@ -53,15 +53,15 @@ export const APPEAL_TYPES = [
   },
   {
     value: 'detail-page-abuse',
-    label: 'Listing/Category Issue: Detail Page Abuse (e.g., Title/Bullet Point Tampering)',
+    label: 'Listing Suspension/Category Issue: Detail Page Abuse (e.g., Title/Bullet Point Tampering)',
   },
   {
     value: 'category-approval',
-    label: 'Listing/Category Issue: Product Group / Category Approval (e.g., Toys, CPC)',
+    label: 'Listing Suspension/Category Issue: Product Group / Category Approval (e.g., Toys, CPC)',
   },
   {
     value: 'kdp-acx-merch',
-    label: 'KDP / ACX / Merch: Content Guideline Violation (e.g., IP, Misleading Title)',
+    label: 'ACX / KDP Termination: Content Guideline Violation (e.g., IP, Misleading Title)',
   },
   {
     value: 'fba-shipping',
@@ -74,6 +74,22 @@ export const APPEAL_TYPES = [
   {
     value: 'brand-registry',
     label: 'Brand Registry: Brand Registry Issue / Error',
+  },
+  {
+    value: 'safety-suspension',
+    label: 'Amazon Safety Suspension Appeals',
+  },
+  {
+    value: 'variation-abuse',
+    label: 'Amazon Variation Abuse Appeals',
+  },
+  {
+    value: 'merch-termination',
+    label: 'Merch by Amazon (MBA) Account Termination',
+  },
+  {
+    value: 'other',
+    label: 'Other',
   },
 ] as const;
 
@@ -148,10 +164,11 @@ export const CORRECTIVE_ACTIONS = {
     'I have conducted a complete audit of all my active and inactive listings',
     'I have carefully read and reviewed all relevant Amazon policies',
     'I have retrained my team on Amazon\'s policies and listing accuracy',
+    'I have reviewed Amazon\'s Business Solutions Agreement and selling policies',
   ],
   inauthenticity: [
     'I have ceased sourcing from the unverified/retail supplier (e.g., Walmart, TJMaxx)',
-    'I have provided retail receipts to verify the source of the products',
+    'I have provided invoices or retail receipts to verify the source of the products',
     'I have retained legal counsel to contact the rights owner',
     'I have submitted a valid Letter of Authorization (LOA) from my supplier',
   ],
@@ -194,52 +211,61 @@ export const CORRECTIVE_ACTIONS = {
     'I have submitted a valid test report from a CPSC-accepted lab (e.g., SGS)',
     'I have submitted product and packaging photos',
   ],
+  kdpAcxMerch: [
+    'I have reviewed KDP\'s Terms of Service and Content Guidelines',
+  ],
+  relay: [
+    'I have reviewed Amazon Relay\'s Conditions of Use',
+  ],
+  merch: [
+    'I have reviewed Amazon Merch on Demand Services Agreement and the Terms of Use',
+  ],
 } as const;
 
 export const PREVENTIVE_MEASURES = {
   sourcing: [
-    'I will source products only from reputable wholesalers or verified distributors who provide proper documentation',
-    'I will no longer use a Retail Arbitrage model',
-    'I will conduct detailed background checks on new suppliers',
-    'I will request Proforma Invoices to verify company details',
-    'I will conduct test buys of new products from potential suppliers',
-    'I will visit the supplier/manufacturer in person (if local)',
-    'Before sourcing, I will contact brand owners directly to obtain a Letter of Authorization (LOA)',
-    'Before sourcing, I will use "Check Permission" or contact Seller Support to ensure I am approved to sell the brand/category',
-    'I will keep all invoices and supply chain documentation for all products',
+    'I source products only from reputable wholesalers or verified distributors who provide proper documentation',
+    'I no longer use a Retail Arbitrage model',
+    'I conduct detailed background checks on new suppliers',
+    'I request Proforma Invoices to verify company details to vet suppliers',
+    'I conduct test buys of new products from potential suppliers',
+    'I visit the supplier/manufacturer in person (if local)',
+    'Before sourcing, I contact brand owners directly to obtain a Letter of Authorization (LOA)',
+    'Before sourcing, I contact Seller Support',
+    'I keep all invoices and supply chain documentation for all products',
   ],
   listing: [
     'I have appointed a compliance manager/QC supervisor to review all listings before publication',
-    'Management approval will be required for all new detail pages',
-    'I will check the USPTO and US Copyright Office databases before listing to prevent IP violations',
-    'I will research keywords on Amazon to see if they are part of a trademarked phrase',
-    'I will only use original photos taken by me, not manufacturer/supplier photos',
-    'I will not add symbols, marketing text, or non-compliant information to titles or bullet points',
-    'I will not use false product identification (e.g., UPCs) or create duplicate detail pages',
-    'I will not use an old listing for a new version of a product; I will create a new ASIN',
-    'I will not use ingredient names in titles unless they are in the product',
-    'I will get FDA approval (PMA) before listing any product that makes medical claims',
-    'I will add all appropriate CPSC/safety cautionary advisements to my listing',
-    'I will implement a supplier safety testing review program',
-    'If in doubt, I will consult an Intellectual Property lawyer before listing',
+    'Management approval is required for all new detail pages',
+    'I check the USPTO and US Copyright Office databases before listing to prevent IP violations',
+    'I research keywords on Amazon to see if they are part of a trademarked phrase',
+    'I only use original photos taken by me, not manufacturer/supplier photos',
+    'I do not add symbols, marketing text, or non-compliant information to titles or bullet points',
+    'I do not use false product identification (e.g., UPCs) or create duplicate detail pages',
+    'I do not use an old listing for a new version of a product; I will create a new ASIN',
+    'I do not use ingredient names in titles unless they are in the product',
+    'I get FDA 510k approval or verify exemption before listing any product that makes medical claims',
+    'I add all appropriate CPSC/safety cautionary advisements to my listing',
+    'I have implemented a supplier safety testing review program',
+    'If in doubt, I consult an Intellectual Property lawyer before listing',
   ],
   reviewManipulation: [
-    'I will not use any product inserts, stickers, or packaging to request reviews or offer rewards',
-    'I will rely only on Amazon\'s internal "Request a Review" button and Vine program',
-    'I will not purchase my own products or ask friends/family to purchase or review my products',
-    'I will not use deep discounts (below cost) to manipulate sales rank',
-    'I will not use any third-party service to stimulate sales, rank, or reviews',
-    'I will implement a weekly and monthly training program for all staff on review policies',
+    'I do not use any product inserts, stickers, or packaging to request reviews or offer rewards',
+    'I rely only on Amazon\'s internal "Request a Review" button and Vine program',
+    'I do not purchase my own products or ask friends/family to purchase or review my products',
+    'I do not use deep discounts (below cost) to manipulate sales rank',
+    'I do not use any third-party service to stimulate sales, rank, or reviews',
+    'I implement a weekly and monthly training program for all staff on review policies',
   ],
   operations: [
-    'I will conduct regular physical inventory checks to ensure my stock levels are accurate',
-    'I will convert my fulfillment model to FBA',
-    'I will spot-check incoming inventory lots for condition, quality, and completeness',
+    'I conduct regular physical inventory checks to ensure my stock levels are accurate',
+    'I convert my fulfillment model to FBA',
+    'I spot-check incoming inventory lots for condition, quality, and completeness',
     'I have appointed a compliance officer to monitor policy changes monthly',
-    'I will perform bi-weekly checks of my account health and live listings',
-    'I will monitor all customer feedback, complaints, and reviews to proactively identify issues',
-    'Any product that creates a poor customer experience will be immediately withdrawn from inventory',
-    'I will respond to all customer inquiries in less than 24 hours',
+    'I perform bi-weekly checks of my account health and live listings',
+    'I monitor all customer feedback, complaints, and reviews to proactively identify issues',
+    'Any product that creates a poor customer experience is immediately withdrawn from inventory',
+    'I respond to all customer inquiries in less than 24 hours',
   ],
 } as const;
 

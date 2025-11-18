@@ -21,7 +21,11 @@ export type AppealType =
   | 'kdp-acx-merch'
   | 'fba-shipping'
   | 'amazon-relay'
-  | 'brand-registry';
+  | 'brand-registry'
+  | 'safety-suspension'
+  | 'variation-abuse'
+  | 'merch-termination'
+  | 'other';
 
 // Root Cause Options
 export interface RootCauseOptions {
@@ -87,6 +91,8 @@ export interface UploadedDocument {
   uploadedAt: Date;
   s3Key?: string;
   url?: string;
+  extractedText?: string; // Text content extracted from the document for AI analysis
+  documentSummary?: string; // Brief AI-generated summary of the document's key points
 }
 
 // Form Data Structure

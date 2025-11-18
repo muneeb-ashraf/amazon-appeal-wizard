@@ -54,6 +54,7 @@ export const TEMPLATE_DOCUMENTS = [
 let embeddingsCache: {
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
   lastUpdated: Date;
 } | null = null;
 
@@ -65,9 +66,10 @@ const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 export async function getCachedEmbeddings(): Promise<{
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
 }> {
   console.log('🔄 Calling getCachedEmbeddings()...');
-  
+
   // Check if cache is valid
   if (
     embeddingsCache &&
@@ -77,6 +79,7 @@ export async function getCachedEmbeddings(): Promise<{
     return {
       documentTexts: embeddingsCache.documentTexts,
       documentEmbeddings: embeddingsCache.documentEmbeddings,
+      documentNames: embeddingsCache.documentNames,
     };
   }
 
@@ -87,15 +90,17 @@ export async function getCachedEmbeddings(): Promise<{
     const cachedFromDb = await getAllDocumentEmbeddingsFromDB();
     if (cachedFromDb && cachedFromDb.documentTexts.length > 0) {
       console.log('✅ Retrieved embeddings from DynamoDB');
-      
+
       embeddingsCache = {
         documentTexts: cachedFromDb.documentTexts,
         documentEmbeddings: cachedFromDb.documentEmbeddings,
+        documentNames: cachedFromDb.documentNames,
         lastUpdated: new Date(),
       };
       return {
         documentTexts: cachedFromDb.documentTexts,
         documentEmbeddings: cachedFromDb.documentEmbeddings,
+        documentNames: cachedFromDb.documentNames,
       };
     } else {
       console.log('ℹ️  No embeddings found in DynamoDB, will generate fresh');
@@ -106,23 +111,30 @@ export async function getCachedEmbeddings(): Promise<{
 
   // Generate fresh embeddings as fallback
   console.log('🔄 Generating fresh embeddings for all documents...');
-  
+
   const documentTexts = await getAllDocumentTexts(TEMPLATE_DOCUMENTS);
   console.log(`📄 Retrieved ${documentTexts.length} document texts`);
 
   const documentEmbeddings = await createBatchEmbeddings(documentTexts);
   console.log(`🔢 Created ${documentEmbeddings.length} embeddings`);
 
+  // Extract document names from TEMPLATE_DOCUMENTS
+  const documentNames = TEMPLATE_DOCUMENTS.map(path => {
+    const parts = path.split('/');
+    return parts[parts.length - 1] || path;
+  });
+
   // Cache in memory
   embeddingsCache = {
     documentTexts,
     documentEmbeddings,
+    documentNames,
     lastUpdated: new Date(),
   };
 
   console.log('✅ Embeddings cached in memory');
 
-  return { documentTexts, documentEmbeddings };
+  return { documentTexts, documentEmbeddings, documentNames };
 }
 
 /**
@@ -131,10 +143,11 @@ export async function getCachedEmbeddings(): Promise<{
 async function getAllDocumentEmbeddingsFromDB(): Promise<{
   documentTexts: string[];
   documentEmbeddings: number[][];
+  documentNames: string[];
 } | null> {
   try {
     console.log('🔍 Scanning DynamoDB for all document embeddings...');
-    
+
     const result = await dynamoDbClient.send(
       new ScanCommand({
         TableName: DOCUMENTS_TABLE,
@@ -154,20 +167,25 @@ async function getAllDocumentEmbeddingsFromDB(): Promise<{
 
     const documentTexts: string[] = [];
     const documentEmbeddings: number[][] = [];
+    const documentNames: string[] = [];
 
     for (const item of result.Items) {
       if (item.textContent && item.embedding) {
         documentTexts.push(item.textContent);
         documentEmbeddings.push(item.embedding);
+        // Extract document name from documentName field or s3Key as fallback
+        const docName = item.documentName || (item.s3Key ? item.s3Key.split('/').pop() : 'Unknown');
+        documentNames.push(docName);
       }
     }
 
-    console.log(`✅ Loaded ${documentTexts.length} texts and ${documentEmbeddings.length} embeddings from DB`);
+    console.log(`✅ Loaded ${documentTexts.length} texts, ${documentEmbeddings.length} embeddings, and ${documentNames.length} names from DB`);
 
     if (documentTexts.length > 0 && documentEmbeddings.length > 0) {
       return {
         documentTexts,
-        documentEmbeddings
+        documentEmbeddings,
+        documentNames
       };
     }
 
