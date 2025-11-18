@@ -71,8 +71,8 @@ export async function convertCsvToText(buffer: Buffer): Promise<string> {
             reject(error);
           }
         },
-        error: (error: Error) => {
-          reject(error);
+        error: (error) => {
+          reject(new Error(error.message));
         }
       });
     });
