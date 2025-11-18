@@ -202,13 +202,15 @@ CRITICAL RULES:
 - Investigation process and findings
 - Timeline (ONLY if actual dates are provided - otherwise describe events generally)
 - Acknowledgment of responsibility
+- 🔥 IF DOCUMENTS ARE UPLOADED: Reference specific details from the uploaded documents to explain the root cause
 Make this comprehensive (3-4 paragraphs).
 
 CRITICAL RULES:
 - DO NOT use placeholder text like [insert date], [add information], etc.
 - DO NOT use markdown formatting (###, **, etc.)
 - If dates aren't provided, describe the sequence of events without specific dates
-- Write in clear paragraph form without markdown`,
+- Write in clear paragraph form without markdown
+- 🚨 IF UPLOADED DOCUMENTS CONTAIN RELEVANT INFORMATION: Cite specific details (e.g., "Upon reviewing the invoice dated March 15, 2024 from XYZ Supplier...")`,
     maxTokens: 800
   },
   {
@@ -218,6 +220,7 @@ CRITICAL RULES:
 - Clear section heading: "Corrective Actions Taken" (plain text, not markdown)
 - Specific actions already taken (past tense: "I have implemented...", "I completed...")
 - Documentation gathered and being provided
+- 🔥 MANDATORY IF DOCUMENTS UPLOADED: Explicitly reference each uploaded document with specific details from its content
 - Systems or processes changed
 - People involved or hired
 Make this detailed with concrete examples (3-4 paragraphs).
@@ -226,7 +229,12 @@ CRITICAL RULES:
 - DO NOT use placeholder text like [insert date], [add details]
 - DO NOT use markdown headers (###) or bullet formatting (-)
 - Write in paragraph form with clear transitions
-- Use past tense for completed actions`,
+- Use past tense for completed actions
+- 🚨 FOR EACH UPLOADED DOCUMENT: Reference it specifically with actual data points:
+  * Example: "I have attached invoices from ABC Wholesale (Invoice #12345 dated March 15, 2024) showing the purchase of 500 units of Product XYZ"
+  * Example: "The attached Certificate of Analysis from SGS Labs confirms our products meet all safety standards (see attached COA-2024-0315.pdf)"
+  * Example: "As demonstrated in the attached supplier documentation, we have established a relationship with authorized distributor DEF Corp"
+- DO NOT just say "see attached" - be SPECIFIC about what each document proves`,
     maxTokens: 800
   },
   {
@@ -611,29 +619,68 @@ function buildUserMessageFromFormData(formData: AppealFormData): string {
     parts.push('');
   }
 
-  // Supporting documents - EMPHASIZE THESE
+  // Supporting documents - EMPHASIZE THESE HEAVILY
   if (formData.uploadedDocuments.length > 0) {
-    parts.push(`\n=== IMPORTANT: SUPPORTING DOCUMENTS PROVIDED ===`);
-    parts.push(`The seller has uploaded the following documents. PAY CLOSE ATTENTION to these as they contain critical evidence and details that should be referenced in the appeal:`);
-    formData.uploadedDocuments.forEach((doc) => parts.push(`• ${doc.type}: ${doc.fileName}`));
-    parts.push(`\nThese documents demonstrate the seller's preparation and should be mentioned appropriately in the appeal (e.g., "See attached invoice", "Please review the attached documentation", etc.)`);
-    parts.push('');
+    parts.push(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    parts.push(`🚨 CRITICAL: UPLOADED SUPPORTING DOCUMENTS - READ CAREFULLY 🚨`);
+    parts.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    parts.push(`\nThe seller has provided ${formData.uploadedDocuments.length} supporting document(s).`);
+    parts.push(`YOU MUST CAREFULLY REVIEW AND INCORPORATE SPECIFIC DETAILS FROM THESE DOCUMENTS.`);
+    parts.push(`\n⚠️  MANDATORY REQUIREMENTS FOR UPLOADED DOCUMENTS:`);
+    parts.push(`1. READ the full content of each uploaded document below`);
+    parts.push(`2. EXTRACT specific details (dates, amounts, supplier names, product info, etc.)`);
+    parts.push(`3. REFERENCE these documents explicitly in the appeal (e.g., "As shown in the attached invoice dated...", "The supplier documentation confirms...")`);;
+    parts.push(`4. USE specific data points from the documents to strengthen credibility`);
+    parts.push(`5. MENTION document types and filenames when referencing them`);
+    parts.push(`\n📄 UPLOADED DOCUMENTS AND THEIR CONTENT:\n`);
+
+    formData.uploadedDocuments.forEach((doc, index) => {
+      parts.push(`\n━━━ DOCUMENT ${index + 1}/${formData.uploadedDocuments.length} ━━━`);
+      parts.push(`File: ${doc.fileName}`);
+      parts.push(`Type: ${doc.type}`);
+
+      if (doc.extractedText && doc.extractedText.trim().length > 0) {
+        parts.push(`\n📋 EXTRACTED CONTENT (ANALYZE THIS CAREFULLY):`);
+        parts.push(`${doc.extractedText.substring(0, 3000)}`); // Include up to 3000 chars of extracted text
+        if (doc.extractedText.length > 3000) {
+          parts.push(`\n... [Content truncated for length. Full document contains ${doc.extractedText.length} characters]`);
+        }
+      } else {
+        parts.push(`\n⚠️  No text content extracted from this document.`);
+        parts.push(`Still reference it as: "Please see attached ${doc.type} (${doc.fileName})"`);
+      }
+
+      if (doc.documentSummary) {
+        parts.push(`\n📝 KEY POINTS: ${doc.documentSummary}`);
+      }
+    });
+
+    parts.push(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    parts.push(`✅ DOCUMENT REVIEW COMPLETE - Now incorporate these details into the appeal`);
+    parts.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
   }
 
   parts.push(`\n=== CRITICAL GENERATION INSTRUCTIONS ===`);
   parts.push(`Create a comprehensive, professional appeal letter that:`);
-  parts.push(`1. Follows the EXACT structure, depth, and formatting of similar templates for "${formData.appealType}"`);
-  parts.push(`2. Includes ALL elements present in similar templates (documentation lists, supplier details, policy citations, multi-step processes, performance metrics, etc.)`);
-  parts.push(`3. Uses the professional tone and specific terminology from the templates`);
-  parts.push(`4. Provides the same level of detail - if templates have 10-15 preventive measures organized by category, match that depth`);
-  parts.push(`5. Includes proper opening address, detailed root cause narrative, specific actions taken, comprehensive preventive measures, and professional closing with full contact information`);
-  parts.push(`6. References specific policies, standards, or regulations as shown in similar templates`);
-  parts.push(`7. **MOST IMPORTANT**: Preventive measures MUST be specifically tailored to THIS violation type - NOT generic categories`);
+  parts.push(`1. ${formData.uploadedDocuments.length > 0 ? '🔥 INCORPORATES SPECIFIC DETAILS FROM THE UPLOADED DOCUMENTS ABOVE - cite dates, amounts, supplier names, and other concrete data' : 'Follows the structure of similar templates'}`);
+  parts.push(`2. Follows the EXACT structure, depth, and formatting of similar templates for "${formData.appealType}"`);
+  parts.push(`3. Includes ALL elements present in similar templates (documentation lists, supplier details, policy citations, multi-step processes, performance metrics, etc.)`);
+  parts.push(`4. Uses the professional tone and specific terminology from the templates`);
+  parts.push(`5. Provides the same level of detail - if templates have 10-15 preventive measures organized by category, match that depth`);
+  parts.push(`6. Includes proper opening address, detailed root cause narrative, specific actions taken, comprehensive preventive measures, and professional closing with full contact information`);
+  parts.push(`7. References specific policies, standards, or regulations as shown in similar templates`);
+  parts.push(`8. **MOST IMPORTANT**: Preventive measures MUST be specifically tailored to THIS violation type - NOT generic categories`);
   parts.push(`   - Study the preventive measures in the templates for "${formData.appealType}"`);
   parts.push(`   - Link each preventive measure category directly to the corrective actions taken`);
   parts.push(`   - For example: If corrective actions mention shipping documentation, preventive measures should detail shipping compliance procedures`);
   parts.push(`   - DO NOT use generic "Sourcing, Listings, Training, Monitoring" unless those are specifically relevant to ${formData.appealType}`);
-  parts.push(`\n8. Reference the uploaded documents when appropriate to strengthen the appeal`);
+  if (formData.uploadedDocuments.length > 0) {
+    parts.push(`\n9. 🚨 MANDATORY: When discussing corrective actions or evidence, reference the uploaded documents with specific details:`);
+    parts.push(`   - Example: "We have attached invoices from [Supplier Name] dated [Date] showing purchase of [Quantity] units"`);
+    parts.push(`   - Example: "The attached Certificate of Analysis confirms [specific detail from COA]"`);
+    parts.push(`   - Example: "As evidenced in the attached documentation (${formData.uploadedDocuments[0].fileName}), we have..."`);
+    parts.push(`   - DO NOT just say "see attached documents" - be SPECIFIC about what each document shows`);
+  }
   parts.push(`\nDo NOT create a generic or simplified appeal. Match the comprehensive, violation-specific nature of the template documents provided.`);
 
   return parts.join('\n');

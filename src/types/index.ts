@@ -91,6 +91,8 @@ export interface UploadedDocument {
   uploadedAt: Date;
   s3Key?: string;
   url?: string;
+  extractedText?: string; // Text content extracted from the document for AI analysis
+  documentSummary?: string; // Brief AI-generated summary of the document's key points
 }
 
 // Form Data Structure
