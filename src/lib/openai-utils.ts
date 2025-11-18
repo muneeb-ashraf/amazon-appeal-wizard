@@ -283,13 +283,13 @@ CRITICAL RULES:
 - Full signature block with EACH item on a SEPARATE LINE:
   * Full name / Business name (on its own line)
   * Business/store name (on its own line, if different from above)
-  * Merchant Token ID: [value] (on its own line, ONLY if provided - do not include if not available)
+  * Merchant Token ID: [value] or Seller ID: [value] (on its own line) - THIS IS MANDATORY
   * Email address (on its own line)
   * DO NOT include phone number or any placeholder text like "[Contact phone not provided]"
 
 CRITICAL SIGNATURE FORMATTING REQUIREMENTS:
-1. Every appeal MUST be signed with at minimum: Name, Company/Store Name, and Email
-2. If Merchant Token/Seller ID is provided, include it as "Merchant Token ID: [value]" or "Seller ID: [value]"
+1. EVERY appeal MUST be signed with ALL FOUR elements: Name, Company/Store Name, Merchant Token/Seller ID, and Email
+2. The Merchant Token/Seller ID is MANDATORY - format as "Merchant Token ID: [value]" or "Seller ID: [value]"
 3. Each element must be on its own separate line
 4. DO NOT use placeholder brackets or missing information messages
 5. Use EXACT formatting as shown in examples below:
@@ -302,22 +302,23 @@ ABC Store LLC
 Merchant Token ID: A1234567890
 john@example.com
 
-Example 2 (without Merchant Token):
+Example 2 (with Seller ID):
 Sincerely,
 
 CRB Ventures
+Merchant Token ID: A3K9L2M1P4Q7R8
 crb3312@gmail.com
 
-Example 3 (with Seller ID):
+Example 3 (Full format):
 Thank you for your consideration,
 
 Francesco Cecchini
-LeisureImpexInc
-Merchant Token ID: A1RTA6DL4Z5BYF
-leisureimpexinc@gmail.com
+FC International Trading
+Seller ID: A1B2C3D4E5F6G7
+francesco@fctrading.com
 
-Keep the closing professional and concise (2-3 paragraphs plus signature).`,
-    maxTokens: 500
+IMPORTANT: All four signature elements (Name, Company, Merchant Token/Seller ID, Email) are REQUIRED for every appeal.`,
+    maxTokens: 600
   }
 ];
 
