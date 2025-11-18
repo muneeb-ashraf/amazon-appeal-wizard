@@ -194,13 +194,13 @@ const Step2_AccountDetails = ({ data, setData }: StepProps) => {
             <p className="text-slate-600 text-lg mb-8">Your information is used only to generate your appeal</p>
             <div className="space-y-6">
                 <div>
-                    <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name / Business Name *</label>
+                    <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name *</label>
                     <StyledInput
                         type="text"
                         id="fullName"
                         value={data.fullName}
                         onChange={e => setData({ ...data, fullName: e.target.value })}
-                        placeholder="e.g., Jennifer Smith or FloLeaf Naturals LLC"
+                        placeholder="e.g., Jennifer Smith"
                         required
                     />
                 </div>
@@ -211,7 +211,7 @@ const Step2_AccountDetails = ({ data, setData }: StepProps) => {
                         id="storeName"
                         value={data.storeName}
                         onChange={e => setData({ ...data, storeName: e.target.value })}
-                        placeholder="e.g., BNC Media LLC"
+                        placeholder="e.g., FloLeaf Naturals LLC or BNC Media"
                         required
                     />
                 </div>
