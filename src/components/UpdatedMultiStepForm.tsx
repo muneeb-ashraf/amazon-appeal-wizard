@@ -366,8 +366,14 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
 
     // Get corrective actions based on appeal type
     const getCorrectiveActionsForType = () => {
-        let actions: string[] = [...CORRECTIVE_ACTIONS.general];
-        
+        // For KDP, Relay, and Merch - use different agreement review, not Business Solutions Agreement
+        const isSpecialPlatform = data.appealType === 'kdp-acx-merch' || data.appealType === 'amazon-relay';
+
+        // Start with general actions, but exclude Business Solutions Agreement for special platforms
+        let actions: string[] = isSpecialPlatform
+            ? CORRECTIVE_ACTIONS.general.filter(action => !action.includes('Business Solutions Agreement'))
+            : [...CORRECTIVE_ACTIONS.general];
+
         if (data.appealType.includes('inauthenticity') || data.appealType.includes('supply-chain')) {
             actions = [...actions, ...CORRECTIVE_ACTIONS.inauthenticity];
         }
@@ -391,6 +397,13 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
         }
         if (data.appealType === 'category-approval') {
             actions = [...actions, ...CORRECTIVE_ACTIONS.categoryApproval];
+        }
+        // Add platform-specific agreement reviews
+        if (data.appealType === 'kdp-acx-merch') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.kdpAcxMerch];
+        }
+        if (data.appealType === 'amazon-relay') {
+            actions = [...actions, ...CORRECTIVE_ACTIONS.relay];
         }
 
         return actions;

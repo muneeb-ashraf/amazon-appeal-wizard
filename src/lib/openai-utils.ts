@@ -211,7 +211,8 @@ CRITICAL RULES:
 - Link each preventive category directly to the root cause and corrective actions
 - DO NOT use markdown headers (###) or bullet formatting (-)
 - Write in paragraph form with clear category transitions
-- Use future tense (will implement, will ensure, etc.)
+- Use PRESENT TENSE, not future tense (e.g., "I source products" NOT "I will source products", "I conduct checks" NOT "I will conduct checks")
+- Avoid using "will" - use present tense to describe ongoing practices
 - Make it as detailed and specific as the template documents for this appeal type`,
     maxTokens: 1000
   },
