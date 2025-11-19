@@ -323,22 +323,10 @@ IMPORTANT: All four signature elements (Name, Company, Merchant Token/Seller ID,
 ];
 
 /**
- * Get adjusted max tokens for KDP appeals (which have 4,000 character limit)
- * Roughly 1 token = 4 characters, so 4000 chars = ~1000 tokens total
+ * Get adjusted max tokens for different appeal types
+ * Note: Character limit for KDP appeals has been removed - all appeals use base token limits
  */
-function getAdjustedMaxTokens(sectionId: number, baseMaxTokens: number, appealType: string): number {
-  if (appealType === 'kdp-acx-merch') {
-    // KDP has 4,000 character limit (≈1,000 tokens total)
-    // Distribute across sections: Opening(150), Root(200), Corrective(250), Preventive(250), Closing(150)
-    const kdpTokenLimits: Record<number, number> = {
-      1: 150,  // Opening
-      2: 200,  // Root Cause
-      3: 250,  // Corrective
-      4: 250,  // Preventive
-      5: 150,  // Closing
-    };
-    return kdpTokenLimits[sectionId] || Math.floor(baseMaxTokens * 0.4);
-  }
+function getAdjustedMaxTokens(baseMaxTokens: number): number {
   return baseMaxTokens;
 }
 
@@ -361,13 +349,7 @@ export async function generateAppealSection(
 
     console.log(`📝 Generating section ${sectionId}/5: ${section.name}`);
 
-    // Check if this is a KDP appeal
-    const isKDP = formData.appealType === 'kdp-acx-merch';
-    const adjustedMaxTokens = getAdjustedMaxTokens(sectionId, section.maxTokens, formData.appealType);
-
-    if (isKDP) {
-      console.log(`⚠️  KDP Appeal - Using reduced token limit: ${adjustedMaxTokens} (4,000 character limit)`);
-    }
+    const adjustedMaxTokens = getAdjustedMaxTokens(section.maxTokens);
 
     // Create context from relevant documents
     const context = relevantDocuments.join('\n\n---TEMPLATE DOCUMENT---\n\n');
@@ -400,7 +382,7 @@ ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 5. Link preventive measures directly to the corrective actions taken
 6. Study the uploaded documents (if any) to understand the specific case details
 7. Match the depth, specificity, and structure of similar templates for "${formData.appealType}"
-${isKDP ? '8. **KDP APPEALS HAVE 4,000 CHARACTER LIMIT** - Keep this section concise and focused\n' : ''}
+
 IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist.`;
 
     const stream = await getOpenAIClient().chat.completions.create({
@@ -508,7 +490,7 @@ function getAppealTypeGuidance(appealType: string): string {
     'category-approval':
       'Focus on: Category requirements (CPC, lab reports), product certifications. PREVENTIVE MEASURES: Product certification procedures, lab testing programs, category requirement checklists.',
     'kdp-acx-merch':
-      'Focus on: Content guidelines, IP compliance, misleading metadata. PREVENTIVE MEASURES: Plagiarism checks (PlagScan), title/cover similarity searches, US Copyright Office database checks, metadata guidelines review, professional editing, customer review monitoring. NOTE: KDP appeals have 4,000 character limit.',
+      'Focus on: Content guidelines, IP compliance, misleading metadata. PREVENTIVE MEASURES: Plagiarism checks (PlagScan), title/cover similarity searches, US Copyright Office database checks, metadata guidelines review, professional editing, customer review monitoring.',
     'fba-shipping':
       'Focus on: FBA requirements, barcode compliance, packaging standards. PREVENTIVE MEASURES: Barcode verification procedures, packaging standard checklists, FBA prep compliance.',
     'amazon-relay':
