@@ -459,12 +459,41 @@ const Step5_PreventiveMeasures = ({ data, setData }: StepProps) => {
         setData({ ...data, preventiveMeasures: newMeasures });
     };
 
-    const allMeasures = [
-        { category: 'Sourcing & Supplier Vetting', items: PREVENTIVE_MEASURES.sourcing },
-        { category: 'Listing, IP & Detail Page Integrity', items: PREVENTIVE_MEASURES.listing },
-        { category: 'Review & Sales Rank Compliance', items: PREVENTIVE_MEASURES.reviewManipulation },
-        { category: 'Operations & Monitoring', items: PREVENTIVE_MEASURES.operations },
-    ];
+    // Determine if this is a KDP/publishing appeal
+    const isKdpAppeal = data.appealType === 'kdp-acx-merch';
+
+    // Define measure categories based on appeal type
+    const allMeasures = isKdpAppeal
+        ? [
+            // KDP-specific categories
+            {
+                category: 'Content & Copyright Compliance',
+                items: PREVENTIVE_MEASURES.kdpPublishing.contentCopyright
+            },
+            {
+                category: 'Cover Design & Image Rights',
+                items: PREVENTIVE_MEASURES.kdpPublishing.coverDesign
+            },
+            {
+                category: 'Title & Metadata Compliance',
+                items: PREVENTIVE_MEASURES.kdpPublishing.titleMetadata
+            },
+            {
+                category: 'Content Quality & Standards',
+                items: PREVENTIVE_MEASURES.kdpPublishing.contentQuality
+            },
+            {
+                category: 'Author & Publisher Verification',
+                items: PREVENTIVE_MEASURES.kdpPublishing.authorVerification
+            },
+        ]
+        : [
+            // Generic seller categories (existing)
+            { category: 'Sourcing & Supplier Vetting', items: PREVENTIVE_MEASURES.sourcing },
+            { category: 'Listing, IP & Detail Page Integrity', items: PREVENTIVE_MEASURES.listing },
+            { category: 'Review & Sales Rank Compliance', items: PREVENTIVE_MEASURES.reviewManipulation },
+            { category: 'Operations & Monitoring', items: PREVENTIVE_MEASURES.operations },
+        ];
 
     return (
         <div>

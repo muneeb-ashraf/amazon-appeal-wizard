@@ -267,6 +267,48 @@ export const PREVENTIVE_MEASURES = {
     'Any product that creates a poor customer experience is immediately withdrawn from inventory',
     'I respond to all customer inquiries in less than 24 hours',
   ],
+  kdpPublishing: {
+    contentCopyright: [
+      'I verify copyright ownership or obtain proper licenses for all published content',
+      'I conduct plagiarism checks using professional tools (Copyscape, PlagScan, Grammarly Premium) before publishing',
+      'I ensure all content is original or properly licensed with documentation',
+      'I maintain records of all copyright permissions and licenses',
+      'I do not use copyrighted content, quotes, or excerpts without proper attribution and permission',
+      'I have implemented a content review process to verify originality before publication',
+    ],
+    coverDesign: [
+      'I only use original artwork or properly licensed images for book covers',
+      'I verify image licensing and maintain documentation for all cover design elements',
+      'I do not use celebrity images, trademarked characters, or copyrighted artwork without authorization',
+      'I conduct reverse image searches to ensure cover images are not infringing',
+      'I maintain licenses for stock photos and design elements used in covers',
+      'I verify that cover designers provide proof of licensing for all assets',
+    ],
+    titleMetadata: [
+      'I do not use trademarked terms, brand names, or series titles in my book titles without authorization',
+      'I review all keywords and metadata to ensure they don\'t infringe on trademarks',
+      'I verify that book titles and subtitles comply with Amazon\'s content policy',
+      'I check USPTO database before using potentially trademarked phrases in titles',
+      'I ensure book descriptions accurately represent content without misleading claims',
+      'I avoid using celebrity names or popular series titles without proper authorization',
+    ],
+    contentQuality: [
+      'I ensure all published content meets Amazon\'s content quality guidelines',
+      'I implement editorial review processes to maintain content standards',
+      'I do not publish public domain works without substantial unique content or value-add',
+      'I verify age-appropriateness of content and apply correct content ratings',
+      'I maintain professional editing and proofreading standards for all publications',
+      'I ensure translations are accurate and properly attributed when publishing translated works',
+    ],
+    authorVerification: [
+      'I maintain proper documentation of authorship and publishing rights',
+      'I verify contributor information and obtain necessary permissions',
+      'I do not publish under false identities or misrepresent authorship',
+      'I maintain clear agreements with co-authors, ghostwriters, or content contributors',
+      'I verify that all contributors have rights to their contributions',
+      'I maintain records demonstrating my authority to publish all content',
+    ],
+  },
 } as const;
 
 export const SUPPORTING_DOCUMENT_TYPES = [

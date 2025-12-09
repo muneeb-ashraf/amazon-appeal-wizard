@@ -190,57 +190,190 @@ CRITICAL RULES:
 - DO NOT use placeholder text like [insert case number], [add details], etc.
 - If specific information (like case numbers, dates) is not provided, simply don't mention it
 - Use only the actual information provided in the user data
-- Use the CORRECT addressee for the appeal type`,
+- Use the CORRECT addressee for the appeal type
+
+INTELLECTUAL PROPERTY LANGUAGE:
+⚠️  CRITICAL: When discussing IP violations (trademark, copyright, patent), NEVER mention specific brand names, trademarked terms, or logos:
+- ❌ DO NOT WRITE: "violations involving Harry Potter, NASA, and Twitter trademarks"
+- ✅ DO WRITE: "violations involving unauthorized trademarked terms and logos"
+- ❌ DO NOT WRITE: "I used the FDA logo without authorization"
+- ✅ DO WRITE: "I used unauthorized regulatory logos without authorization"
+- ❌ DO NOT WRITE: "Nike, Adidas, and Disney trademarks were used"
+- ✅ DO WRITE: "Protected brand names and trademarks were used"
+
+Use generic language: "trademarked terms," "protected logos," "copyrighted material," "intellectual property," "brand names," "proprietary marks."
+
+KDP/PUBLISHING TERMINOLOGY:
+⚠️  If this is a KDP/publishing appeal (appeal type contains 'kdp', 'acx', 'merch', 'publishing', or 'book'), use PUBLISHING-SPECIFIC terminology:
+- Use "book(s)", "publication(s)", "content", "manuscript", "title(s)", "work(s)" instead of "product(s)"
+- Use "published", "publishing", "catalog" instead of "listing", "inventory"
+- Use "KDP account", "publishing account" instead of "seller account" or "store"
+- Use "book page" instead of "detail page"
+- Example: "regarding the nature of the BOOK" NOT "regarding the nature of the PRODUCT"
+- Example: "confusion with existing BOOKS" NOT "confusion with existing PRODUCTS"`,
     maxTokens: 700
   },
   {
     id: 2,
     name: 'Root Cause Analysis',
-    prompt: `Generate ONLY the root cause section of the appeal. Include:
+    prompt: `Generate ONLY the root cause section of the appeal. This section should DIAGNOSE what went wrong, NOT describe solutions or fixes.
+
+WHAT TO INCLUDE:
 - Clear section heading: "Root Cause Analysis" (plain text, not markdown)
-- Detailed explanation of what caused the issue
-- Investigation process and findings
-- Timeline (ONLY if actual dates are provided - otherwise describe events generally)
-- Acknowledgment of responsibility
+- Detailed explanation of what caused the issue (the problem, not the solution)
+- Investigation process and findings (how you discovered the problem)
+- Timeline of events leading to the violation (ONLY if actual dates are provided - otherwise describe events generally)
+- Acknowledgment of responsibility and understanding of the policy violated
 - 🔥 IF DOCUMENTS ARE UPLOADED: Reference specific details from the uploaded documents to explain the root cause
+
 Make this comprehensive (3-4 paragraphs).
+
+CRITICAL SCOPE BOUNDARIES - ROOT CAUSE ANALYSIS ONLY:
+✅ DO INCLUDE:
+- WHAT went wrong (e.g., "I did not verify my supplier's authorization status")
+- WHY it happened (e.g., "due to inadequate vetting procedures at the time")
+- HOW you discovered the problem (e.g., "Upon receiving Amazon's notice, I immediately investigated...")
+- Timeline of the problem developing (not timeline of fixing it)
+
+❌ DO NOT INCLUDE:
+- Actions you've taken to fix the problem (that belongs in Section 3: Corrective Actions)
+- Ongoing practices or future plans (that belongs in Section 4: Preventive Measures)
+- Phrases like "I have implemented...", "I have established...", "I now maintain..." (these are fixes, not root causes)
+- Any mention of new systems, procedures, or changes (these are corrective/preventive actions)
+
+EXAMPLES:
+✅ CORRECT (Root Cause only):
+"The root cause of this issue was my failure to verify that my supplier was an authorized distributor of the brand. When I started selling this product line in March 2024, I relied on the supplier's verbal assurance of authenticity without requesting formal documentation."
+
+❌ INCORRECT (includes corrective action):
+"The root cause was inadequate supplier vetting. To address this, I have now implemented a comprehensive supplier verification system that includes requesting LOAs and conducting brand registry checks."
+
+REMEMBER: This section is about DIAGNOSING the problem, not describing the cure. Keep all solutions for Sections 3 and 4.
 
 CRITICAL RULES:
 - DO NOT use placeholder text like [insert date], [add information], etc.
 - DO NOT use markdown formatting (###, **, etc.)
 - If dates aren't provided, describe the sequence of events without specific dates
 - Write in clear paragraph form without markdown
-- 🚨 IF UPLOADED DOCUMENTS CONTAIN RELEVANT INFORMATION: Cite specific details (e.g., "Upon reviewing the invoice dated March 15, 2024 from XYZ Supplier...")`,
+- 🚨 IF UPLOADED DOCUMENTS CONTAIN RELEVANT INFORMATION: Cite specific details (e.g., "Upon reviewing the invoice dated March 15, 2024 from XYZ Supplier...")
+
+INTELLECTUAL PROPERTY LANGUAGE:
+⚠️  NEVER mention specific brand names, trademarks, or logos when discussing IP violations:
+- Use "trademarked terms" instead of listing specific brands
+- Use "unauthorized logos" instead of naming specific logos (e.g., "FDA logo")
+- Use "protected terms" instead of brand names
+- Use "copyrighted material" instead of specific copyrighted works
+
+Examples:
+❌ INCORRECT: "The root cause was using Harry Potter and NASA trademarks in listings"
+✅ CORRECT: "The root cause was using unauthorized trademarked terms in listings"
+
+❌ INCORRECT: "I included the Nike logo and Adidas branding without permission"
+✅ CORRECT: "I included unauthorized brand logos and protected marks without permission"
+
+KDP/PUBLISHING TERMINOLOGY:
+⚠️  For KDP/publishing appeals, use appropriate publishing terminology:
+- Say "book", "publication", "content", "manuscript", "title", "work" instead of "product"
+- Say "published", "publishing catalog", "bookshelf" instead of "listed", "inventory"
+- Say "metadata" (title, description, keywords) instead of "listing details"
+- Say "cover design" instead of "product images"
+- Example: "The book in question was titled..." NOT "The product in question..."
+- Example: "published work" NOT "listed product"`,
     maxTokens: 800
   },
   {
     id: 3,
     name: 'Corrective Actions',
-    prompt: `Generate ONLY the corrective actions section. Include:
+    prompt: `Generate ONLY the corrective actions section. This section should describe COMPLETED, PAST-TENSE actions you have ALREADY taken to fix the specific problem identified in the root cause analysis.
+
+WHAT TO INCLUDE:
 - Clear section heading: "Corrective Actions Taken" (plain text, not markdown)
-- Specific actions already taken (past tense: "I have implemented...", "I completed...")
-- Documentation gathered and being provided
+- Specific actions already completed (strict past tense: "I removed...", "I hired...", "I obtained...", "I revised...")
+- Documentation gathered and being provided with this appeal
 - 🔥 MANDATORY IF DOCUMENTS UPLOADED: Explicitly reference each uploaded document with specific details from its content
-- Systems or processes changed
-- People involved or hired
+- People hired or consulted (past tense: "I hired an attorney", "I engaged a compliance consultant")
+- Immediate changes made to address the violation (past tense: "I deleted the listing", "I destroyed non-compliant inventory")
+
 Make this detailed with concrete examples (3-4 paragraphs).
+
+CRITICAL SCOPE BOUNDARIES - COMPLETED ACTIONS ONLY:
+✅ DO INCLUDE:
+- One-time actions already completed (e.g., "I removed all inauthentic products from inventory")
+- Documents obtained as evidence (e.g., "I secured LOAs from authorized distributors")
+- Immediate fixes to stop the violation (e.g., "I revised all product listings to remove disease claims")
+- People brought in to help (e.g., "I hired a trademark attorney to review all listings")
+- Past tense verbs: "removed", "implemented", "obtained", "revised", "completed", "hired", "trained"
+
+❌ DO NOT INCLUDE:
+- Ongoing practices or routines (that belongs in Section 4: Preventive Measures)
+- Future commitments or plans (that belongs in Section 4: Preventive Measures)
+- Phrases like "I maintain...", "I conduct...", "I ensure...", "I regularly..." (these describe ongoing practices, not completed actions)
+- Phrases like "I will...", "I plan to...", "going forward..." (these are future preventive measures)
+- Descriptions of how you will avoid this in the future (that's Section 4)
+- Present tense or present continuous verbs describing ongoing activities
+
+⚠️  KEY DISTINCTION:
+- Corrective Action (✅): "I implemented a new supplier vetting checklist" (one-time setup that is now complete)
+- Preventive Measure (❌): "I use this checklist to verify all new suppliers" (ongoing practice using the implemented system)
+
+EXAMPLES:
+✅ CORRECT (Completed corrective action):
+"I immediately removed all 247 units of the affected product from my inventory and disposed of them properly. I obtained Letters of Authorization from three verified distributors and attached them to this appeal."
+
+❌ INCORRECT (includes ongoing preventive measure):
+"I removed all affected products from inventory. Going forward, I conduct weekly inventory audits to ensure compliance and maintain a database of approved suppliers."
+
+REMEMBER: This section is about what you've ALREADY DONE to fix the problem (past tense, completed actions). Save ongoing practices for Section 4.
 
 CRITICAL RULES:
 - DO NOT use placeholder text like [insert date], [add details]
 - DO NOT use markdown headers (###) or bullet formatting (-)
 - Write in paragraph form with clear transitions
-- Use past tense for completed actions
+- Use PAST TENSE for all actions (completed actions only)
 - 🚨 FOR EACH UPLOADED DOCUMENT: Reference it specifically with actual data points:
   * Example: "I have attached invoices from ABC Wholesale (Invoice #12345 dated March 15, 2024) showing the purchase of 500 units of Product XYZ"
   * Example: "The attached Certificate of Analysis from SGS Labs confirms our products meet all safety standards (see attached COA-2024-0315.pdf)"
-  * Example: "As demonstrated in the attached supplier documentation, we have established a relationship with authorized distributor DEF Corp"
-- DO NOT just say "see attached" - be SPECIFIC about what each document proves`,
+  * Example: "As demonstrated in the attached supplier documentation, we established a relationship with authorized distributor DEF Corp on January 10, 2024"
+- DO NOT just say "see attached" - be SPECIFIC about what each document proves
+- DO NOT describe what you "maintain", "conduct regularly", or "ensure" - those are preventive measures
+
+INTELLECTUAL PROPERTY LANGUAGE:
+⚠️  NEVER list specific brand names, trademarks, or logos when describing corrective actions:
+- ❌ DO NOT WRITE: "I removed Harry Potter, Star Wars, and Marvel trademarks from all listings"
+- ✅ DO WRITE: "I removed all unauthorized trademarked terms from listings"
+- ❌ DO NOT WRITE: "I deleted the FDA and WHO logos from product images"
+- ✅ DO WRITE: "I deleted unauthorized regulatory and organizational logos from product images"
+
+Keep acknowledgments generic while remaining specific about ACTIONS taken:
+✅ CORRECT: "I removed all products containing unauthorized intellectual property"
+✅ CORRECT: "I eliminated protected brand names and logos from titles and descriptions"
+✅ CORRECT: "I deleted listings that used trademarked terms without authorization"
+
+KDP/PUBLISHING TERMINOLOGY:
+⚠️  For KDP/publishing appeals, use publishing industry language:
+- Say "I removed the book from my catalog" NOT "I removed the product from inventory"
+- Say "I revised the book's metadata" NOT "I updated the product listing"
+- Say "I redesigned the cover" NOT "I changed the product images"
+- Say "I unpublished the title" NOT "I deleted the listing"
+- Say "manuscript", "content", "publication" instead of "product"
+- Example: "I removed the misleading TITLE from my KDP shelf" NOT "I removed the misleading PRODUCT from my inventory"`,
     maxTokens: 800
   },
   {
     id: 4,
     name: 'Preventive Measures',
-    prompt: `Generate ONLY the preventive measures section. This is CRITICAL: The preventive measures MUST be specifically tailored to the violation type and MUST directly relate to the corrective actions already taken.
+    prompt: `Generate ONLY the preventive measures section. This section should describe ONGOING and FUTURE practices that will prevent this violation from recurring. These are routines, systems, and habits you maintain NOW and will continue GOING FORWARD.
+
+CRITICAL DISTINCTION FROM SECTION 3:
+- Section 3 (Corrective Actions) = COMPLETED, one-time fixes you already did (past tense)
+- Section 4 (Preventive Measures) = ONGOING routines and systems you maintain now and will maintain in the future (present/future tense)
+
+WHAT TO INCLUDE:
+- Clear section heading: "Preventive Measures to Avoid Future Issues" or similar (plain text, not markdown)
+- Organize by 2-4 SPECIFIC categories directly related to the violation (NOT generic categories)
+- Each category should have multiple detailed, concrete preventive steps
+- Total 10-15 specific preventive measures
+- All measures must be VIOLATION-SPECIFIC and logically follow from the corrective actions taken
 
 IMPORTANT: DO NOT use generic categories like "Sourcing, Listings, Training, Monitoring" unless they are specifically relevant to this appeal type.
 
@@ -255,21 +388,70 @@ Instead, create SPECIFIC preventive measure categories that match the violation:
 - For ODR/Condition Complaints: Focus on inventory quality control, packing/shipping procedures, warehouse supervision
 - For Verification: Focus on document maintenance, regular policy monitoring, customer service excellence
 
-Structure:
-- Clear section heading: "Preventive Measures to Avoid Future Issues" or similar (plain text, not markdown)
-- Organize by 2-4 SPECIFIC categories directly related to the violation (NOT generic categories)
-- Each category should have multiple detailed, concrete preventive steps
-- Total 10-15 specific preventive measures
-- All measures must logically follow from and reinforce the corrective actions
+CRITICAL SCOPE BOUNDARIES - ONGOING PRACTICES ONLY:
+✅ DO INCLUDE:
+- Regular routines (e.g., "I conduct weekly supplier audits")
+- Ongoing monitoring (e.g., "I review all listings monthly for compliance")
+- Continuous practices (e.g., "I maintain a database of authorized distributors")
+- Future commitments (e.g., "I will attend quarterly compliance training sessions")
+- Systems you use regularly (e.g., "I use a plagiarism checker for every new design")
+- Present tense verbs: "conduct", "review", "maintain", "monitor", "ensure", "verify"
+- Future tense for new commitments: "will conduct", "will maintain"
+
+❌ DO NOT INCLUDE:
+- One-time actions already completed (that was Section 3: Corrective Actions)
+- Past tense descriptions (e.g., "I removed", "I hired", "I obtained")
+- The initial setup or implementation (e.g., "I implemented a new system" is corrective; "I use this system to..." is preventive)
+- Phrases like "I have implemented", "I have established", "I have hired" (these are past completed actions, not ongoing practices)
+
+⚠️  KEY DISTINCTION:
+- Corrective Action (❌): "I hired a compliance officer" (one-time action, past tense - belongs in Section 3)
+- Preventive Measure (✅): "My compliance officer reviews all listings before publication" (ongoing practice, present tense - belongs here)
+
+EXAMPLES:
+✅ CORRECT (Ongoing preventive measure):
+"I conduct weekly audits of all active listings to verify compliance with Amazon's policies. Each listing is reviewed against a comprehensive checklist that includes image requirements, title formatting, and prohibited claims. Any listing flagged for potential issues is immediately revised or removed."
+
+❌ INCORRECT (includes past corrective action):
+"I implemented a weekly audit system and trained my team on compliance procedures. I now conduct weekly audits of all active listings."
+
+⚠️  ANOTHER KEY DISTINCTION:
+- Corrective Action (❌): "I implemented a supplier vetting system with a 12-point checklist" (past tense, one-time setup)
+- Preventive Measure (✅): "Before onboarding any new supplier, I verify their authorization status using a 12-point checklist that includes requesting LOAs, checking brand registry, and confirming business licenses" (present tense, describing the ongoing use)
+
+REMEMBER: This section is about what you DO NOW and WILL DO GOING FORWARD (present/future tense, ongoing practices). Do not repeat what you already completed in Section 3.
 
 CRITICAL RULES:
 - Preventive measures MUST be violation-specific, NOT generic
 - Link each preventive category directly to the root cause and corrective actions
 - DO NOT use markdown headers (###) or bullet formatting (-)
 - Write in paragraph form with clear category transitions
-- Use PRESENT TENSE, not future tense (e.g., "I source products" NOT "I will source products", "I conduct checks" NOT "I will conduct checks")
-- Avoid using "will" - use present tense to describe ongoing practices
-- Make it as detailed and specific as the template documents for this appeal type`,
+- Use PRESENT TENSE for ongoing practices (e.g., "I source products" NOT "I will source products", "I conduct checks" NOT "I will conduct checks")
+- Use FUTURE TENSE only for new commitments not yet started (e.g., "I will attend quarterly compliance webinars")
+- Avoid starting sentences with past tense verbs or "I have..."
+- DO NOT repeat actions from Section 3 - only describe how you use/maintain those systems now
+- Make it as detailed and specific as the template documents for this appeal type
+
+INTELLECTUAL PROPERTY LANGUAGE:
+⚠️  NEVER reference specific brands or trademarks when describing preventive measures:
+- ❌ DO NOT WRITE: "I check the USPTO database to avoid using Nike, Apple, or Samsung trademarks"
+- ✅ DO WRITE: "I check the USPTO database to avoid using protected trademarks"
+- ❌ DO NOT WRITE: "I ensure no Disney, Marvel, or Star Wars characters appear in listings"
+- ✅ DO WRITE: "I ensure no unauthorized copyrighted characters or protected intellectual property appear in listings"
+
+Focus on the PROCESS, not specific brands:
+✅ CORRECT: "I verify that all product listings comply with trademark laws and do not include unauthorized brand names"
+✅ CORRECT: "I conduct regular audits to ensure no protected logos or trademarked terms are used without authorization"
+
+KDP/PUBLISHING TERMINOLOGY:
+⚠️  For KDP/publishing appeals, use appropriate publishing terminology:
+- Say "before publishing any content" NOT "before listing any products"
+- Say "I review all book metadata" NOT "I check all product listings"
+- Say "manuscripts", "publications", "titles", "books" instead of "products"
+- Say "publishing catalog", "bookshelf" instead of "inventory"
+- Say "KDP guidelines", "content policy" instead of "listing policies"
+- Example: "I ensure all published CONTENT meets Amazon's guidelines" NOT "I ensure all PRODUCTS meet Amazon's guidelines"
+- Example: "I conduct plagiarism checks on all MANUSCRIPTS before publishing" NOT "I check all PRODUCTS before listing"`,
     maxTokens: 1000
   },
   {
@@ -374,6 +556,11 @@ ${userMessage}
 ${previousSections.length > 0 ? `PREVIOUSLY GENERATED SECTIONS:
 ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 
+⚠️  CRITICAL: Review the previously generated sections to understand the context, but DO NOT REPEAT their content. Each section has a distinct scope:
+- Section 2: Root cause DIAGNOSIS only (what went wrong, not fixes)
+- Section 3: COMPLETED corrective actions only (past tense, one-time fixes)
+- Section 4: ONGOING preventive measures only (present/future tense, routines)
+
 ` : ''}CRITICAL INSTRUCTIONS FOR THIS APPEAL:
 1. Appeal Type: ${formData.appealType}
 2. Correct Addressee: ${correctAddressee}
@@ -382,8 +569,25 @@ ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 5. Link preventive measures directly to the corrective actions taken
 6. Study the uploaded documents (if any) to understand the specific case details
 7. Match the depth, specificity, and structure of similar templates for "${formData.appealType}"
+8. ⚠️  RESPECT SECTION BOUNDARIES: Do not include content that belongs in other sections
+9. If generating Section 2: Focus ONLY on diagnosis (not fixes)
+10. If generating Section 3: Focus ONLY on completed past actions (not ongoing practices)
+11. If generating Section 4: Focus ONLY on ongoing/future practices (not past completed actions)
+12. ⚠️  INTELLECTUAL PROPERTY VIOLATIONS: NEVER mention specific brand names, trademarks, logos, or copyrighted works when discussing IP violations:
+    - Use generic terms: "trademarked terms," "protected logos," "brand names," "copyrighted material," "intellectual property"
+    - DO NOT list specific brands like "Nike," "Disney," "Harry Potter," "FDA," etc.
+    - DO NOT name specific logos or marks
+    - Maintain accountability with generic acknowledgment, not detailed cataloging
+    - Example: Say "unauthorized trademarked terms" NOT "Harry Potter and NASA trademarks"
+13. ⚠️  KDP/PUBLISHING TERMINOLOGY: If this is a KDP, ACX, Merch, or publishing-related appeal:
+    - Use publishing terminology: "book(s)", "publication(s)", "content", "manuscript", "title(s)", "work(s)"
+    - NOT seller terminology: "product(s)", "listing(s)", "inventory", "SKU"
+    - Say "published" not "listed", "catalog" not "inventory", "cover design" not "product images"
+    - Example: "the nature of the BOOK" NOT "the nature of the PRODUCT"
+    - Example: "I removed the TITLE from my catalog" NOT "I removed the PRODUCT from inventory"
+    - Be consistent throughout the entire appeal - NEVER mix publishing and seller terminology
 
-IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist.`;
+IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist, but DO NOT REPEAT content from previous sections.`;
 
     const stream = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o-mini', // Fast model to stay under timeout
@@ -393,6 +597,8 @@ IMPORTANT: Generate ONLY the requested section (${section.name}). Match the prof
       ],
       temperature: 0.85,
       max_tokens: adjustedMaxTokens,
+      frequency_penalty: 0.3, // Discourage repetition between sections
+      presence_penalty: 0.2, // Encourage introducing new concepts in each section
       stream: true,
     }, {
       timeout: 25000, // 25 second timeout (leaves 5s buffer for Lambda)
