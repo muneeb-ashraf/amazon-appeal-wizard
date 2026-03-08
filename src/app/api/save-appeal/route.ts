@@ -4,8 +4,9 @@
 
 import { NextRequest } from 'next/server';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import { dynamoDbClient, APPEALS_TABLE } from '@/lib/aws-config';
+import { dynamoDbClient, getAdminAppealsTable } from '@/lib/aws-config';
 import { v4 as uuidv4 } from 'uuid';
+import type { AdminAppealRecord } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { formData, appealText } = body;
+    const { formData, appealText, metadata = {} } = body;
 
     if (!formData || !appealText) {
       return new Response(
@@ -27,27 +28,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('💾 Saving appeal to database for:', formData.sellerName);
+    console.log('💾 Saving appeal to database for:', formData.fullName || formData.sellerName);
 
-    // Save to DynamoDB
+    // Save to admin-appeals table
     const appealId = uuidv4();
-    const appealData = {
-      id: appealId,
-      sellerName: formData.sellerName,
-      appealType: formData.appealType,
-      appealText: appealText,
-      createdAt: new Date().toISOString(),
-      formData: formData,
+    const now = new Date().toISOString();
+
+    const appealRecord: AdminAppealRecord = {
+      appealId,
+      createdAt: now,
+      updatedAt: now,
+      status: 'completed',
+      formData: {
+        fullName: formData.fullName || '',
+        storeName: formData.storeName || '',
+        email: formData.email || '',
+        sellerId: formData.sellerId || '',
+        appealType: formData.appealType || '',
+        rootCauses: formData.rootCauses || [],
+        correctiveActionsTaken: formData.correctiveActionsTaken || [],
+        preventiveMeasures: formData.preventiveMeasures || [],
+        asins: formData.asins || [],
+        rootCauseDetails: formData.rootCauseDetails,
+        correctiveActionsDetails: formData.correctiveActionsDetails,
+        preventiveMeasuresDetails: formData.preventiveMeasuresDetails,
+      },
+      generatedAppeal: appealText,
+      generationMetadata: {
+        sectionsGenerated: metadata.sectionsGenerated || [],
+        totalTokens: metadata.totalTokens,
+        generationTimeMs: metadata.generationTimeMs,
+        aiInstructionsVersion: metadata.aiInstructionsVersion,
+        formFieldsVersion: metadata.formFieldsVersion,
+      },
+      uploadedDocuments: formData.uploadedDocuments?.map((doc: any) => ({
+        id: doc.id,
+        fileName: doc.fileName,
+        fileSize: doc.fileSize,
+        type: doc.type,
+        s3Key: doc.s3Key,
+      })) || [],
     };
+
+    const tableName = getAdminAppealsTable();
 
     await dynamoDbClient.send(
       new PutCommand({
-        TableName: APPEALS_TABLE,
-        Item: appealData,
+        TableName: tableName,
+        Item: appealRecord,
       })
     );
 
-    console.log('✅ Appeal saved successfully with ID:', appealId);
+    console.log('✅ Appeal saved successfully to', tableName, 'with ID:', appealId);
 
     return new Response(
       JSON.stringify({

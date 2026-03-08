@@ -66,7 +66,12 @@ let _dynamoDbClient: DynamoDBDocumentClient | null = null;
 export const getDynamoDbClient = () => {
   if (!_dynamoDbClient) {
     const ddbClient = new DynamoDBClient(getAWSConfig());
-    _dynamoDbClient = DynamoDBDocumentClient.from(ddbClient);
+    _dynamoDbClient = DynamoDBDocumentClient.from(ddbClient, {
+      marshallOptions: {
+        removeUndefinedValues: true, // Automatically remove undefined values
+        convertEmptyValues: false,
+      },
+    });
   }
   return _dynamoDbClient;
 };
@@ -81,6 +86,12 @@ export const dynamoDbClient = new Proxy({} as DynamoDBDocumentClient, {
 // Table names (using functions for lazy evaluation)
 export const getAppealsTable = () => process.env.NEXT_PUBLIC_DYNAMODB_APPEALS_TABLE || 'amazon-appeals';
 export const getDocumentsTable = () => process.env.NEXT_PUBLIC_DYNAMODB_DOCUMENTS_TABLE || 'amazon-documents';
+
+// Admin panel table names
+export const getAdminConfigTable = () => process.env.NEXT_PUBLIC_DYNAMODB_ADMIN_CONFIG_TABLE || 'admin-configurations';
+export const getAdminHistoryTable = () => process.env.NEXT_PUBLIC_DYNAMODB_ADMIN_HISTORY_TABLE || 'admin-configuration-history';
+export const getAdminTestTable = () => process.env.NEXT_PUBLIC_DYNAMODB_ADMIN_TEST_TABLE || 'admin-test-appeals';
+export const getAdminAppealsTable = () => process.env.NEXT_PUBLIC_DYNAMODB_ADMIN_APPEALS_TABLE || 'admin-appeals';
 
 // S3 Bucket (using function for lazy evaluation)
 export const getS3Bucket = () => process.env.NEXT_PUBLIC_AWS_S3_BUCKET || '';

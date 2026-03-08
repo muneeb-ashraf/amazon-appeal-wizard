@@ -3,8 +3,9 @@
 // ============================================================================
 
 import { NextRequest } from 'next/server';
-import { generateAppealSectionWithContext, APPEAL_SECTIONS } from '@/lib/openai-utils';
+import { generateAppealSectionWithContext, APPEAL_SECTIONS, generateAppealSection } from '@/lib/openai-utils';
 import { getCachedEmbeddings } from '@/lib/embeddings-cache';
+import { queryGeminiFileSearch, formatRetrievedContext } from '@/lib/gemini-rag-utils';
 
 // Route configuration - Each section gets its own 30-second window
 export const maxDuration = 30;
@@ -39,27 +40,88 @@ export async function POST(request: NextRequest) {
     const section = APPEAL_SECTIONS.find(s => s.id === sectionId);
     console.log(`🚀 Generating section ${sectionId}/5: ${section?.name}`);
 
-    // Get cached embeddings
-    const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
+    // Feature flag: Use Gemini RAG or legacy DynamoDB embeddings
+    const USE_GEMINI_RAG = process.env.NEXT_PUBLIC_USE_GEMINI_RAG === 'true';
+    let sectionText: string;
 
-    if (documentTexts.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'No template documents available' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+    if (USE_GEMINI_RAG) {
+      console.log('✨ Using Gemini File Search RAG');
+
+      try {
+        // Query Gemini for relevant template chunks
+        const { retrievedChunks, citations } = await queryGeminiFileSearch(formData, sectionId);
+
+        if (retrievedChunks.length === 0) {
+          console.warn('⚠️  No chunks retrieved from Gemini, falling back to DynamoDB embeddings');
+          throw new Error('Gemini RAG returned no results');
+        }
+
+        // Format context for OpenAI
+        const contextString = formatRetrievedContext(retrievedChunks, citations);
+
+        // Convert context string to array of document texts for compatibility
+        const relevantDocuments = retrievedChunks;
+
+        console.log(`✅ Retrieved ${retrievedChunks.length} relevant chunks from Gemini`);
+
+        // Generate section using Gemini-retrieved context
+        sectionText = await generateAppealSection(
+          sectionId,
+          formData,
+          relevantDocuments,
+          previousSections
+        );
+
+      } catch (geminiError: any) {
+        console.error('❌ Gemini RAG error, falling back to DynamoDB:', geminiError.message);
+
+        // Fallback to DynamoDB embeddings
+        const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
+
+        if (documentTexts.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'No template documents available' }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log(`📚 Fallback: Using ${documentTexts.length} template documents from DynamoDB`);
+
+        sectionText = await generateAppealSectionWithContext(
+          sectionId,
+          formData,
+          documentTexts,
+          documentEmbeddings,
+          documentNames,
+          previousSections
+        );
+      }
+
+    } else {
+      console.log('📚 Using legacy DynamoDB embeddings');
+
+      // Legacy path: DynamoDB embeddings
+      const { documentTexts, documentEmbeddings, documentNames } = await getCachedEmbeddings();
+
+      if (documentTexts.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No template documents available' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`📚 Using ${documentTexts.length} template documents`);
+
+      // Generate this specific section
+      sectionText = await generateAppealSectionWithContext(
+        sectionId,
+        formData,
+        documentTexts,
+        documentEmbeddings,
+        documentNames,
+        previousSections
       );
     }
-
-    console.log(`📚 Using ${documentTexts.length} template documents`);
-
-    // Generate this specific section
-    const sectionText = await generateAppealSectionWithContext(
-      sectionId,
-      formData,
-      documentTexts,
-      documentEmbeddings,
-      documentNames,
-      previousSections
-    );
 
     return new Response(
       JSON.stringify({

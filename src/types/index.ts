@@ -211,3 +211,67 @@ export interface AdminAppealListItem {
   createdAt: string;
   status: string;
 }
+
+// Admin Appeals Table Record
+export interface AdminAppealRecord {
+  appealId: string; // Primary Key (UUID)
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+  status: 'completed' | 'failed' | 'pending';
+  formData: {
+    fullName: string;
+    storeName: string;
+    email: string;
+    sellerId: string;
+    appealType: string;
+    rootCauses: string[];
+    correctiveActionsTaken: string[];
+    preventiveMeasures: string[];
+    asins: string[];
+    rootCauseDetails?: string;
+    correctiveActionsDetails?: string;
+    preventiveMeasuresDetails?: string;
+  };
+  generatedAppeal: string; // Full appeal text
+  generationMetadata: {
+    aiInstructionsVersion?: number;
+    formFieldsVersion?: number;
+    sectionsGenerated: string[];
+    totalTokens?: number;
+    generationTimeMs?: number;
+  };
+  uploadedDocuments?: Array<{
+    id: string;
+    fileName: string;
+    fileSize: number;
+    type: string;
+    s3Key?: string;
+  }>;
+}
+
+// API Response Types for Admin Appeals
+export interface AdminAppealsListResponse {
+  success: boolean;
+  appeals: AdminAppealRecord[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  error?: string;
+}
+
+export interface AdminAppealStatsResponse {
+  success: boolean;
+  stats: {
+    totalAppeals: number;
+    completedAppeals: number;
+    failedAppeals: number;
+    pendingAppeals: number;
+    successRate: number;
+    avgGenerationTime?: number;
+    appealsByType?: Record<string, number>;
+  };
+  error?: string;
+}

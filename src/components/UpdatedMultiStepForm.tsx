@@ -1,7 +1,15 @@
 "use client";
 import * as React from 'react';
 import { AppealFormData, UploadedDocument } from '@/types';
-import { APPEAL_TYPES, ROOT_CAUSES, CORRECTIVE_ACTIONS, PREVENTIVE_MEASURES, SUPPORTING_DOCUMENT_TYPES } from '@/lib/constants';
+import {
+    APPEAL_TYPES,
+    ROOT_CAUSES,
+    CORRECTIVE_ACTIONS,
+    PREVENTIVE_MEASURES,
+    SUPPORTING_DOCUMENT_TYPES,
+    getFormFieldsConfig
+} from '@/lib/constants';
+import type { FormFieldsConfig } from '@/lib/admin-config-types';
 import { v4 as uuidv4 } from 'uuid';
 import { formatAppealText } from '@/lib/format-appeal';
 import { DocumentIcon, ChecklistIcon, MailIcon, ShieldCheckIcon } from '@/components/icons/DocumentIcon';
@@ -27,6 +35,7 @@ type CheckboxCardProps = {
 type StepProps = {
     data: AppealFormData;
     setData: React.Dispatch<React.SetStateAction<AppealFormData>>;
+    config?: FormFieldsConfig;
 };
 
 // --- SVG ICONS ---
@@ -161,25 +170,30 @@ const CheckboxCard = ({ id, name, value, label, checked, onChange }: CheckboxCar
 // --- STEP COMPONENTS ---
 
 // Step 1: Appeal Type Selection
-const Step1_AppealType = ({ data, setData }: StepProps) => (
-    <div>
-        <h2 className="text-3xl font-bold mb-3 text-slate-900">What is the primary reason for your account action?</h2>
-        <p className="text-slate-600 text-lg mb-8">Select the option that best matches your situation</p>
-        <ScrollContainer className="space-y-4 max-h-[65vh] overflow-y-auto pr-3">
-            {APPEAL_TYPES.map(type => (
-                <RadioCard
-                    key={type.value}
-                    id={type.value}
-                    name="appealType"
-                    value={type.value}
-                    label={type.label}
-                    checked={data.appealType === type.value}
-                    onChange={(e) => setData({ ...data, appealType: e.target.value as any })}
-                />
-            ))}
-        </ScrollContainer>
-    </div>
-);
+const Step1_AppealType = ({ data, setData, config }: StepProps) => {
+    // Use config if available, otherwise fallback to hardcoded
+    const appealTypes = config?.appealTypes.filter(t => t.enabled).sort((a, b) => a.order - b.order) || APPEAL_TYPES;
+
+    return (
+        <div>
+            <h2 className="text-3xl font-bold mb-3 text-slate-900">What is the primary reason for your account action?</h2>
+            <p className="text-slate-600 text-lg mb-8">Select the option that best matches your situation</p>
+            <ScrollContainer className="space-y-4 max-h-[65vh] overflow-y-auto pr-3">
+                {appealTypes.map(type => (
+                    <RadioCard
+                        key={type.value}
+                        id={type.value}
+                        name="appealType"
+                        value={type.value}
+                        label={type.label}
+                        checked={data.appealType === type.value}
+                        onChange={(e) => setData({ ...data, appealType: e.target.value as any })}
+                    />
+                ))}
+            </ScrollContainer>
+        </div>
+    );
+};
 
 // Step 2: Account & Identification Details
 const Step2_AccountDetails = ({ data, setData }: StepProps) => {
@@ -253,7 +267,7 @@ const Step2_AccountDetails = ({ data, setData }: StepProps) => {
 };
 
 // Step 3: Root Cause Analysis (Conditional)
-const Step3_RootCause = ({ data, setData }: StepProps) => {
+const Step3_RootCause = ({ data, setData, config }: StepProps) => {
     const handleCheckboxChange = (value: string) => {
         const newRootCauses = data.rootCauses.includes(value)
             ? data.rootCauses.filter(c => c !== value)
@@ -263,8 +277,17 @@ const Step3_RootCause = ({ data, setData }: StepProps) => {
 
     // Get root causes based on appeal type
     const getRootCausesForType = () => {
-        const type = data.appealType as keyof typeof ROOT_CAUSES;
-        return ROOT_CAUSES[type] || [];
+        if (config) {
+            // Use loaded config
+            return config.rootCauses
+                .filter(cause => cause.enabled && cause.appealTypes.includes(data.appealType))
+                .sort((a, b) => a.order - b.order)
+                .map(cause => cause.text);  // Fixed: use .text instead of .label
+        } else {
+            // Fallback to hardcoded
+            const type = data.appealType as keyof typeof ROOT_CAUSES;
+            return ROOT_CAUSES[type] || [];
+        }
     };
 
     const rootCauseOptions = getRootCausesForType();
@@ -292,7 +315,7 @@ const Step3_RootCause = ({ data, setData }: StepProps) => {
                         </ScrollContainer>
 
                         {/* Conditional fields based on appeal type */}
-                        {data.appealType === 'inauthenticity-supply-chain' && data.rootCauses.some(c => c.includes('supplier')) && (
+                        {data.appealType === 'inauthenticity-supply-chain' && data.rootCauses.filter(Boolean).some(c => c.includes('supplier')) && (
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Unauthorized Supplier Name (if applicable)</label>
                                 <StyledInput
@@ -356,7 +379,7 @@ const Step3_RootCause = ({ data, setData }: StepProps) => {
 };
 
 // Step 4: Corrective Actions Taken
-const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
+const Step4_CorrectiveActions = ({ data, setData, config }: StepProps) => {
     const handleCheckboxChange = (value: string) => {
         const newActions = data.correctiveActionsTaken.includes(value)
             ? data.correctiveActionsTaken.filter(a => a !== value)
@@ -366,52 +389,61 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
 
     // Get corrective actions based on appeal type
     const getCorrectiveActionsForType = () => {
-        // For KDP, Relay, and Merch - use different agreement review, not Business Solutions Agreement
-        const isSpecialPlatform = data.appealType === 'kdp-acx-merch' ||
-                                 data.appealType === 'amazon-relay' ||
-                                 data.appealType === 'merch-termination';
+        if (config) {
+            // Use loaded config - filter by appeal type or show all if appealTypes is empty
+            return config.correctiveActions
+                .filter(action => action.enabled && (
+                    action.appealTypes.length === 0 ||
+                    action.appealTypes.includes(data.appealType)
+                ))
+                .sort((a, b) => a.order - b.order)
+                .map(action => action.text);  // Fixed: use .text instead of .label
+        } else {
+            // Fallback to hardcoded logic
+            const isSpecialPlatform = data.appealType === 'kdp-acx-merch' ||
+                                     data.appealType === 'amazon-relay' ||
+                                     data.appealType === 'merch-termination';
 
-        // Start with general actions, but exclude Business Solutions Agreement for special platforms
-        let actions: string[] = isSpecialPlatform
-            ? CORRECTIVE_ACTIONS.general.filter(action => !action.includes('Business Solutions Agreement'))
-            : [...CORRECTIVE_ACTIONS.general];
+            let actions: string[] = isSpecialPlatform
+                ? CORRECTIVE_ACTIONS.general.filter(action => !action.includes('Business Solutions Agreement'))
+                : [...CORRECTIVE_ACTIONS.general];
 
-        if (data.appealType.includes('inauthenticity') || data.appealType.includes('supply-chain')) {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.inauthenticity];
-        }
-        if (data.appealType === 'intellectual-property') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.intellectualProperty];
-        }
-        if (data.appealType === 'seller-code-conduct') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.codeOfConduct];
-        }
-        if (data.appealType === 'restricted-products') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.restrictedProducts];
-        }
-        if (data.appealType === 'verification-failure') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.verificationFailure];
-        }
-        if (data.appealType === 'related-account') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.relatedAccount];
-        }
-        if (data.appealType === 'detail-page-abuse') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.detailPageAbuse];
-        }
-        if (data.appealType === 'category-approval') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.categoryApproval];
-        }
-        // Add platform-specific agreement reviews
-        if (data.appealType === 'kdp-acx-merch') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.kdpAcxMerch];
-        }
-        if (data.appealType === 'amazon-relay') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.relay];
-        }
-        if (data.appealType === 'merch-termination') {
-            actions = [...actions, ...CORRECTIVE_ACTIONS.merch];
-        }
+            if (data.appealType.includes('inauthenticity') || data.appealType.includes('supply-chain')) {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.inauthenticity];
+            }
+            if (data.appealType === 'intellectual-property') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.intellectualProperty];
+            }
+            if (data.appealType === 'seller-code-conduct') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.codeOfConduct];
+            }
+            if (data.appealType === 'restricted-products') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.restrictedProducts];
+            }
+            if (data.appealType === 'verification-failure') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.verificationFailure];
+            }
+            if (data.appealType === 'related-account') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.relatedAccount];
+            }
+            if (data.appealType === 'detail-page-abuse') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.detailPageAbuse];
+            }
+            if (data.appealType === 'category-approval') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.categoryApproval];
+            }
+            if (data.appealType === 'kdp-acx-merch') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.kdpAcxMerch];
+            }
+            if (data.appealType === 'amazon-relay') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.relay];
+            }
+            if (data.appealType === 'merch-termination') {
+                actions = [...actions, ...CORRECTIVE_ACTIONS.merch];
+            }
 
-        return actions;
+            return actions;
+        }
     };
 
     const actionOptions = getCorrectiveActionsForType();
@@ -451,7 +483,7 @@ const Step4_CorrectiveActions = ({ data, setData }: StepProps) => {
 };
 
 // Step 5: Preventive Measures
-const Step5_PreventiveMeasures = ({ data, setData }: StepProps) => {
+const Step5_PreventiveMeasures = ({ data, setData, config }: StepProps) => {
     const handleCheckboxChange = (value: string) => {
         const newMeasures = data.preventiveMeasures.includes(value)
             ? data.preventiveMeasures.filter(m => m !== value)
@@ -459,41 +491,61 @@ const Step5_PreventiveMeasures = ({ data, setData }: StepProps) => {
         setData({ ...data, preventiveMeasures: newMeasures });
     };
 
-    // Determine if this is a KDP/publishing appeal
-    const isKdpAppeal = data.appealType === 'kdp-acx-merch';
+    // Define measure categories based on config or hardcoded fallback
+    const allMeasures = (() => {
+        if (config) {
+            // Group by category from config
+            const groupedByCategory = config.preventiveMeasures
+                .filter(measure => measure.enabled && (
+                    measure.appealTypes.length === 0 ||
+                    measure.appealTypes.includes(data.appealType)
+                ))
+                .reduce((acc, measure) => {
+                    if (!acc[measure.category]) {
+                        acc[measure.category] = [];
+                    }
+                    acc[measure.category].push(measure.text);  // Fixed: use .text instead of .label
+                    return acc;
+                }, {} as Record<string, string[]>);
 
-    // Define measure categories based on appeal type
-    const allMeasures = isKdpAppeal
-        ? [
-            // KDP-specific categories
-            {
-                category: 'Content & Copyright Compliance',
-                items: PREVENTIVE_MEASURES.kdpPublishing.contentCopyright
-            },
-            {
-                category: 'Cover Design & Image Rights',
-                items: PREVENTIVE_MEASURES.kdpPublishing.coverDesign
-            },
-            {
-                category: 'Title & Metadata Compliance',
-                items: PREVENTIVE_MEASURES.kdpPublishing.titleMetadata
-            },
-            {
-                category: 'Content Quality & Standards',
-                items: PREVENTIVE_MEASURES.kdpPublishing.contentQuality
-            },
-            {
-                category: 'Author & Publisher Verification',
-                items: PREVENTIVE_MEASURES.kdpPublishing.authorVerification
-            },
-        ]
-        : [
-            // Generic seller categories (existing)
-            { category: 'Sourcing & Supplier Vetting', items: PREVENTIVE_MEASURES.sourcing },
-            { category: 'Listing, IP & Detail Page Integrity', items: PREVENTIVE_MEASURES.listing },
-            { category: 'Review & Sales Rank Compliance', items: PREVENTIVE_MEASURES.reviewManipulation },
-            { category: 'Operations & Monitoring', items: PREVENTIVE_MEASURES.operations },
-        ];
+            return Object.entries(groupedByCategory)
+                .map(([category, items]) => ({ category, items }))
+                .sort((a, b) => a.category.localeCompare(b.category));
+        } else {
+            // Fallback to hardcoded logic
+            const isKdpAppeal = data.appealType === 'kdp-acx-merch';
+
+            return isKdpAppeal
+                ? [
+                    {
+                        category: 'Content & Copyright Compliance',
+                        items: PREVENTIVE_MEASURES.kdpPublishing.contentCopyright
+                    },
+                    {
+                        category: 'Cover Design & Image Rights',
+                        items: PREVENTIVE_MEASURES.kdpPublishing.coverDesign
+                    },
+                    {
+                        category: 'Title & Metadata Compliance',
+                        items: PREVENTIVE_MEASURES.kdpPublishing.titleMetadata
+                    },
+                    {
+                        category: 'Content Quality & Standards',
+                        items: PREVENTIVE_MEASURES.kdpPublishing.contentQuality
+                    },
+                    {
+                        category: 'Author & Publisher Verification',
+                        items: PREVENTIVE_MEASURES.kdpPublishing.authorVerification
+                    },
+                ]
+                : [
+                    { category: 'Sourcing & Supplier Vetting', items: PREVENTIVE_MEASURES.sourcing },
+                    { category: 'Listing, IP & Detail Page Integrity', items: PREVENTIVE_MEASURES.listing },
+                    { category: 'Review & Sales Rank Compliance', items: PREVENTIVE_MEASURES.reviewManipulation },
+                    { category: 'Operations & Monitoring', items: PREVENTIVE_MEASURES.operations },
+                ];
+        }
+    })();
 
     return (
         <div>
@@ -537,10 +589,10 @@ const Step5_PreventiveMeasures = ({ data, setData }: StepProps) => {
 };
 
 // Step 6: Supporting Documentation
-const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
+const Step6_SupportingDocuments = ({ data, setData, config }: StepProps) => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        
+
         const newDocuments: UploadedDocument[] = files.map(file => ({
             id: uuidv4(),
             type: 'other',
@@ -563,14 +615,16 @@ const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
     };
 
     // Group documents by category
-    const groupedDocTypes = SUPPORTING_DOCUMENT_TYPES.reduce((acc, doc) => {
+    const documentTypes = config?.supportingDocuments.filter(doc => doc.enabled).sort((a, b) => a.order - b.order) || SUPPORTING_DOCUMENT_TYPES;
+
+    const groupedDocTypes = documentTypes.reduce((acc, doc) => {
         const category = doc.category;
         if (!acc[category]) {
             acc[category] = [];
         }
         acc[category].push(doc);
         return acc;
-    }, {} as Record<string, Array<typeof SUPPORTING_DOCUMENT_TYPES[number]>>);
+    }, {} as Record<string, Array<typeof documentTypes[number]>>);
 
     return (
         <div>
@@ -667,20 +721,23 @@ const Step6_SupportingDocuments = ({ data, setData }: StepProps) => {
 };
 
 // Step 7: Review & Generate
-const Step7_Review = ({ 
-    data, 
-    onGenerate, 
-    isGenerating, 
-    progress, 
-    status, 
-    streamedText 
-}: StepProps & { 
-    onGenerate: () => void; 
+const Step7_Review = ({
+    data,
+    config,
+    onGenerate,
+    isGenerating,
+    progress,
+    status,
+    streamedText
+}: StepProps & {
+    onGenerate: () => void;
     isGenerating: boolean;
     progress?: number;
     status?: string;
     streamedText?: string;
 }) => {
+    const appealTypes = config?.appealTypes || APPEAL_TYPES;
+
     return (
         <div>
             <h2 className="text-3xl font-bold mb-3 text-slate-900 flex items-center gap-3">
@@ -688,7 +745,7 @@ const Step7_Review = ({
                 Final Review & Submission
             </h2>
             <p className="text-slate-600 text-lg mb-6">Please carefully review your information below before generating your professional appeal letter</p>
-            
+
             <ScrollContainer className="space-y-5 max-h-[60vh] overflow-y-auto pr-3" showGradients={false}>
                 {/* Account Info */}
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
@@ -706,7 +763,7 @@ const Step7_Review = ({
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                     <h3 className="font-semibold text-slate-800 mb-2">Issue Type</h3>
                     <p className="text-sm text-slate-700">
-                        {APPEAL_TYPES.find(t => t.value === data.appealType)?.label || data.appealType}
+                        {appealTypes.find(t => t.value === data.appealType)?.label || data.appealType}
                     </p>
                 </div>
 
@@ -816,14 +873,15 @@ const Step7_Review = ({
 };
 
 // Step 8: Generated Appeal
-const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: string }) => {
+const Step8_GeneratedAppeal = ({ data, config, appealText }: StepProps & { appealText: string }) => {
     const [copied, setCopied] = React.useState(false);
+    const appealTypes = config?.appealTypes || APPEAL_TYPES;
 
     const copyToClipboard = () => {
         // Clean the appeal text before copying
         let cleanedText = appealText.replace(/---SECTION BREAK---/g, '');
         cleanedText = cleanedText.replace(/\[Contact phone not provided\]/gi, '');
-        
+
         navigator.clipboard.writeText(cleanedText);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -832,20 +890,20 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
     const downloadPDF = async () => {
         // Dynamic import to reduce bundle size
         const { jsPDF } = await import('jspdf');
-        
+
         // Create new PDF document
         const doc = new jsPDF({
             unit: 'pt',
             format: 'letter'
         });
-        
+
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 72; // 1 inch margins
         const contentWidth = pageWidth - (margin * 2);
         const bottomMargin = 72; // Space for footer at bottom
         let yPosition = margin;
-        
+
         // Helper function to check if we need a new page
         const checkPageBreak = (neededSpace: number) => {
             if (yPosition + neededSpace > pageHeight - bottomMargin) {
@@ -855,11 +913,11 @@ const Step8_GeneratedAppeal = ({ data, appealText }: StepProps & { appealText: s
             }
             return false;
         };
-        
+
         // Add Subject line at the top
         doc.setFontSize(11);
         doc.setFont('times', 'bold');
-        const appealTypeLabel = APPEAL_TYPES.find(t => t.value === data.appealType)?.label || data.appealType;
+        const appealTypeLabel = appealTypes.find(t => t.value === data.appealType)?.label || data.appealType;
         const subjectText = `Subject: Appeal for Reinstatement: ${appealTypeLabel}`;
         const subjectLines = doc.splitTextToSize(subjectText, contentWidth);
         doc.text(subjectLines, margin, yPosition);
@@ -1261,6 +1319,11 @@ const getProgressMessage = (progress: number): string => {
 
 // --- MAIN COMPONENT ---
 export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: () => void }) {
+    // Configuration loading state
+    const [config, setConfig] = React.useState<FormFieldsConfig | null>(null);
+    const [isLoadingConfig, setIsLoadingConfig] = React.useState(true);
+    const [isUsingFallback, setIsUsingFallback] = React.useState(false);
+
     const [currentStep, setCurrentStep] = React.useState(1);
     const [formData, setFormData] = React.useState<AppealFormData>(initialFormData);
     const [isGenerating, setIsGenerating] = React.useState(false);
@@ -1268,6 +1331,69 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
     const [generationProgress, setGenerationProgress] = React.useState(0);
     const [generationStatus, setGenerationStatus] = React.useState('');
     const [streamedText, setStreamedText] = React.useState('');
+
+    // Load configuration on component mount
+    React.useEffect(() => {
+        async function loadConfig() {
+            try {
+                console.log('📥 Loading form field configuration from database...');
+                const loadedConfig = await getFormFieldsConfig();
+                setConfig(loadedConfig);
+                setIsUsingFallback(false);
+                console.log('✅ Form configuration loaded successfully');
+            } catch (error) {
+                console.error('⚠️  Failed to load form configuration, using fallback:', error);
+                // Create fallback config from hardcoded constants
+                const fallbackConfig: FormFieldsConfig = {
+                    appealTypes: APPEAL_TYPES.map((type, index) => ({
+                        ...type,
+                        enabled: true,
+                        order: index + 1
+                    })),
+                    rootCauses: Object.entries(ROOT_CAUSES).flatMap(([appealType, causes]) =>
+                        (causes as string[]).map((label, index) => ({
+                            value: label.toLowerCase().replace(/\s+/g, '-'),
+                            label,
+                            category: 'General',
+                            enabled: true,
+                            order: index + 1,
+                            appealTypes: [appealType]
+                        }))
+                    ),
+                    correctiveActions: Object.entries(CORRECTIVE_ACTIONS).flatMap(([category, actions]) =>
+                        (actions as string[]).map((label, index) => ({
+                            value: label.toLowerCase().replace(/\s+/g, '-'),
+                            label,
+                            category,
+                            enabled: true,
+                            order: index + 1,
+                            appealTypes: []
+                        }))
+                    ),
+                    preventiveMeasures: Object.entries(PREVENTIVE_MEASURES).flatMap(([category, measures]) =>
+                        (measures as string[]).map((label, index) => ({
+                            value: label.toLowerCase().replace(/\s+/g, '-'),
+                            label,
+                            category,
+                            enabled: true,
+                            order: index + 1,
+                            appealTypes: []
+                        }))
+                    ),
+                    supportingDocuments: SUPPORTING_DOCUMENT_TYPES.map((doc, index) => ({
+                        ...doc,
+                        enabled: true,
+                        order: index + 1
+                    }))
+                };
+                setConfig(fallbackConfig);
+                setIsUsingFallback(true);
+            } finally {
+                setIsLoadingConfig(false);
+            }
+        }
+        loadConfig();
+    }, []);
 
     const totalSteps = 8;
     const stepNames = ['Type', 'Account', 'Cause', 'Actions', 'Prevention', 'Documents', 'Review', 'Appeal'];
@@ -1403,29 +1529,68 @@ export default function UpdatedMultiStepForm({ onBackToHome }: { onBackToHome?: 
 
     const renderStep = () => {
         switch (currentStep) {
-            case 1: return <Step1_AppealType data={formData} setData={setFormData} />;
-            case 2: return <Step2_AccountDetails data={formData} setData={setFormData} />;
-            case 3: return <Step3_RootCause data={formData} setData={setFormData} />;
-            case 4: return <Step4_CorrectiveActions data={formData} setData={setFormData} />;
-            case 5: return <Step5_PreventiveMeasures data={formData} setData={setFormData} />;
-            case 6: return <Step6_SupportingDocuments data={formData} setData={setFormData} />;
-            case 7: return <Step7_Review 
-                data={formData} 
-                setData={setFormData} 
-                onGenerate={handleGenerate} 
+            case 1: return <Step1_AppealType data={formData} setData={setFormData} config={config || undefined} />;
+            case 2: return <Step2_AccountDetails data={formData} setData={setFormData} config={config || undefined} />;
+            case 3: return <Step3_RootCause data={formData} setData={setFormData} config={config || undefined} />;
+            case 4: return <Step4_CorrectiveActions data={formData} setData={setFormData} config={config || undefined} />;
+            case 5: return <Step5_PreventiveMeasures data={formData} setData={setFormData} config={config || undefined} />;
+            case 6: return <Step6_SupportingDocuments data={formData} setData={setFormData} config={config || undefined} />;
+            case 7: return <Step7_Review
+                data={formData}
+                setData={setFormData}
+                config={config || undefined}
+                onGenerate={handleGenerate}
                 isGenerating={isGenerating}
                 progress={generationProgress}
                 status={generationStatus}
                 streamedText={streamedText}
             />;
-            case 8: return <Step8_GeneratedAppeal data={formData} setData={setFormData} appealText={generatedAppeal} />;
+            case 8: return <Step8_GeneratedAppeal data={formData} setData={setFormData} config={config || undefined} appealText={generatedAppeal} />;
             default: return null;
         }
     };
 
+    // Show loading spinner while config loads
+    if (isLoadingConfig || !config) {
+        return (
+            <div className="bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen flex items-center justify-center p-4">
+                <div className="text-center">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-lg opacity-50 animate-pulse"></div>
+                        <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full p-6">
+                            <svg className="animate-spin h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p className="text-slate-700 font-semibold text-lg mt-6">Loading form configuration...</p>
+                    <p className="text-slate-500 text-sm mt-2">Please wait while we prepare your appeal form</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6">
             <div className="w-full max-w-6xl my-8 px-4">{/* Changed from max-w-4xl to max-w-6xl for wider form */}
+                {/* Warning banner if using fallback configuration */}
+                {isUsingFallback && (
+                    <div className="mb-4 bg-amber-50 border-2 border-amber-300 rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start gap-3">
+                            <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-amber-900 mb-1">Using Default Configuration</h4>
+                                <p className="text-sm text-amber-800">
+                                    Unable to load custom configuration from database. The form is using default settings.
+                                    Your appeal will still be generated successfully.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {onBackToHome && currentStep === 1 && (
                     <div className="mb-4">
                         <button onClick={onBackToHome} className="text-slate-600 hover:text-slate-800 font-medium text-sm flex items-center">

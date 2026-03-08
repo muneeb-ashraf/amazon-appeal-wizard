@@ -5,6 +5,8 @@
 import OpenAI from 'openai';
 import { getOpenAIKey } from './aws-config';
 import { AppealFormData } from '@/types';
+import { loadActiveConfig } from './config-loader';
+import type { AIInstructionsConfig } from './admin-config-types';
 
 // Lazy OpenAI client initialization
 let _openai: OpenAI | null = null;
@@ -505,6 +507,31 @@ IMPORTANT: All four signature elements (Name, Company, Merchant Token/Seller ID,
 ];
 
 /**
+ * Get appeal sections from active configuration or fallback to hardcoded
+ */
+async function getAppealSections() {
+  try {
+    const config = await loadActiveConfig<AIInstructionsConfig>('ai-instructions');
+
+    if (config?.configData?.sections) {
+      console.log('✅ Using appeal sections from active configuration');
+      // Map config sections to expected format
+      return config.configData.sections.map(section => ({
+        id: section.order,
+        name: section.name,
+        prompt: section.userPromptTemplate,
+        maxTokens: section.maxTokens
+      }));
+    }
+  } catch (error) {
+    console.warn('⚠️  Failed to load appeal sections from config, using fallback:', error);
+  }
+
+  console.log('ℹ️  Using hardcoded fallback appeal sections');
+  return APPEAL_SECTIONS;
+}
+
+/**
  * Get adjusted max tokens for different appeal types
  * Note: Character limit for KDP appeals has been removed - all appeals use base token limits
  */
@@ -524,7 +551,31 @@ export async function generateAppealSection(
   previousSections: string[] = []
 ): Promise<string> {
   try {
-    const section = APPEAL_SECTIONS.find(s => s.id === sectionId);
+    // Load configuration for model settings
+    let modelToUse = 'gpt-4o-mini'; // Default fallback
+    let temperatureToUse = 0.85;
+    let maxRetriesConfig = 3;
+    let timeoutConfig = 25000;
+
+    try {
+      const config = await loadActiveConfig<AIInstructionsConfig>('ai-instructions');
+      if (config?.configData?.globalSettings) {
+        modelToUse = config.configData.globalSettings.defaultModel;
+        temperatureToUse = config.configData.globalSettings.defaultTemperature;
+        maxRetriesConfig = config.configData.globalSettings.maxRetries;
+        timeoutConfig = config.configData.globalSettings.timeoutMs;
+        console.log(`✅ Using configured model: ${modelToUse}`);
+      } else {
+        console.log('⚠️  No global settings in config, using defaults');
+      }
+    } catch (error) {
+      console.warn('⚠️  Failed to load config, using defaults:', error);
+    }
+
+    // Load sections from config or fallback
+    const sections = await getAppealSections();
+    const section = sections.find(s => s.id === sectionId);
+
     if (!section) {
       throw new Error(`Invalid section ID: ${sectionId}`);
     }
@@ -590,18 +641,18 @@ ${previousSections.join('\n\n---SECTION BREAK---\n\n')}
 IMPORTANT: Generate ONLY the requested section (${section.name}). Match the professional tone and depth of the template documents. Ensure smooth continuation from previous sections if they exist, but DO NOT REPEAT content from previous sections.`;
 
     const stream = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o-mini', // Fast model to stay under timeout
+      model: modelToUse,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: section.prompt },
       ],
-      temperature: 0.85,
+      temperature: temperatureToUse,
       max_tokens: adjustedMaxTokens,
       frequency_penalty: 0.3, // Discourage repetition between sections
       presence_penalty: 0.2, // Encourage introducing new concepts in each section
       stream: true,
     }, {
-      timeout: 25000, // 25 second timeout (leaves 5s buffer for Lambda)
+      timeout: timeoutConfig,
     });
 
     let sectionText = '';
@@ -617,7 +668,9 @@ IMPORTANT: Generate ONLY the requested section (${section.name}). Match the prof
     return sectionText;
 
   } catch (error) {
-    const section = APPEAL_SECTIONS.find(s => s.id === sectionId);
+    // Load sections for error message
+    const sections = await getAppealSections();
+    const section = sections.find(s => s.id === sectionId);
     console.error(`Error generating section ${sectionId}:`, error);
     throw new Error(`Failed to generate section ${sectionId}: ${section?.name || 'Unknown'}`);
   }

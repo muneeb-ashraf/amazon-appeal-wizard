@@ -37,6 +37,7 @@ Visit `http://localhost:3000`
 
 ## 📖 Documentation
 
+### Main Setup Guides
 | Guide | Description |
 |-------|-------------|
 | **[FINAL_SETUP_INSTRUCTIONS.md](./FINAL_SETUP_INSTRUCTIONS.md)** | 🎯 **START HERE** - Complete setup walkthrough |
@@ -47,23 +48,58 @@ Visit `http://localhost:3000`
 | **[UPLOAD_DOCUMENTS_GUIDE.md](./UPLOAD_DOCUMENTS_GUIDE.md)** | ⬆️ S3 upload instructions |
 | **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** | 📋 Current implementation details |
 
+### Admin Panel Documentation
+📁 **[docs/](./docs/)** - All admin panel documentation
+
+| Document | Description |
+|----------|-------------|
+| **[docs/ADMIN_QUICK_START.md](./docs/ADMIN_QUICK_START.md)** | 🚀 Admin panel setup (5 minutes) |
+| **[docs/admin-seed-quick-reference.md](./docs/admin-seed-quick-reference.md)** | 📋 Admin seed scripts quick reference |
+| **[docs/ADMIN_PANEL_README.md](./docs/ADMIN_PANEL_README.md)** | 📋 Admin panel overview |
+| **[docs/PHASE_2_COMPLETE.md](./docs/PHASE_2_COMPLETE.md)** | ✅ AI Instructions Editor guide |
+| **[docs/GEMINI_RAG_INTEGRATION.md](./docs/GEMINI_RAG_INTEGRATION.md)** | ✨ **Gemini File Search RAG setup & migration** |
+| **[docs/README.md](./docs/README.md)** | 📚 Complete documentation index |
+
+### Scripts Documentation
+📁 **[scripts/](./scripts/)** - Database seeding and setup scripts
+
+| Document | Description |
+|----------|-------------|
+| **[scripts/README.md](./scripts/README.md)** | 📚 Complete guide to seed scripts |
+
 ## ✨ Features
 
-- 🎯 **18 Appeal Types** - Comprehensive coverage of all Amazon suspension reasons
-- 🤖 **AI-Powered** - Uses GPT-4 and embeddings from 38 successful appeals
+### User-Facing
+- 🎯 **22 Appeal Types** - Comprehensive coverage of all Amazon suspension reasons
+- 🤖 **AI-Powered** - Uses GPT-4o-mini with **Gemini 2.5 Flash RAG** for template retrieval
 - 📝 **Multi-Step Form** - Intuitive, conditional logic based on your situation
 - 📄 **Document Processing** - Converts DOCX to TXT for optimal AI embedding
 - 💾 **Cloud Storage** - AWS S3 + DynamoDB for secure data management
-- 📊 **Admin Dashboard** - Monitor all appeals and manage documents
 - 🎨 **Beautiful UI** - Modern, responsive design with Tailwind CSS
+- ✨ **NEW: Gemini RAG** - Advanced retrieval-augmented generation with Gemini File Search
+
+### Admin Panel (NEW! ✨)
+- ⚙️ **AI Instructions Editor** - Customize all 5 sections of appeal generation
+- 📝 **Monaco Code Editor** - Professional editor with variable highlighting
+- 🎚️ **Token Limits** - Visual sliders with character/word estimates
+- 🔤 **Variable System** - 16+ variables for dynamic content
+- 💾 **Draft & Activate** - Test changes before going live
+- 📊 **Version Control** - Track all configuration changes
+- 🎯 **Global Settings** - Model, temperature, retries, timeout
+
+**Admin Panel Status**: Phase 2 Complete (~20% of total plan)
+- ✅ Foundation & Database
+- ✅ AI Instructions Editor
+- 🔜 Form Fields Editor (Coming Next)
 
 ## 🏗️ Tech Stack
 
 - **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
-- **AI:** OpenAI GPT-4 + Embeddings
+- **AI:** OpenAI GPT-4o-mini + **Google Gemini 2.5 Flash RAG**
 - **Backend:** Next.js API Routes
 - **Storage:** AWS S3 (documents) + DynamoDB (data)
 - **Document Processing:** Mammoth.js
+- **RAG:** Google Gemini File API for template retrieval
 - **Deployment:** AWS Amplify
 
 ## 📋 Prerequisites
@@ -71,6 +107,7 @@ Visit `http://localhost:3000`
 - Node.js 18+
 - AWS Account (S3, DynamoDB, IAM)
 - OpenAI API Key (with GPT-4 access)
+- **Google Gemini API Key** (for RAG - get free at [Google AI Studio](https://makersuite.google.com/app/apikey))
 
 ## 🎯 Project Structure
 
@@ -150,19 +187,56 @@ npm run lint
 | `npm run lint` | Run ESLint to check code quality |
 | `npm run validate-env` | ✅ Verify all environment variables and AWS connections |
 | `npm run process-documents` | 🔄 Convert all 38 DOCX files to TXT and create embeddings |
+| `npm run create-admin-tables` | 🗄️ Create DynamoDB tables for admin panel |
+| `npm run seed-admin` | 🌱 Seed initial admin configurations |
+| `npm run setup-admin` | 🚀 Create tables + seed (one command) |
+| **`npm run migrate-to-gemini`** | ✨ **Migrate templates to Gemini File Search RAG** |
+| **`npm run verify-gemini`** | 🔍 **Verify Gemini migration status** |
 
 ## 📝 Configuration
 
 Create `.env.local`:
 
 ```env
+# OpenAI Configuration
 OPENAI_API_KEY=sk-your-key
+
+# AWS Configuration
 NEXT_AWS_ACCESS_KEY_ID=your-key
 NEXT_AWS_SECRET_ACCESS_KEY=your-secret
 NEXT_PUBLIC_AWS_S3_BUCKET=your-bucket
+
+# Google Gemini Configuration (NEW!)
+GOOGLE_GEMINI_API_KEY=your-gemini-api-key
+
+# Feature Flags
+NEXT_PUBLIC_USE_GEMINI_RAG=false  # Set to true after migration
 ```
 
 See `.env.example` for all variables.
+
+### Gemini RAG Migration
+
+After setting up AWS and OpenAI, migrate to Gemini File Search RAG:
+
+```bash
+# 1. Add Gemini API key to .env.local
+# Get free key at: https://makersuite.google.com/app/apikey
+
+# 2. Run migration
+npm run migrate-to-gemini
+
+# 3. Verify migration
+npm run verify-gemini
+
+# 4. Enable Gemini RAG
+# Set NEXT_PUBLIC_USE_GEMINI_RAG=true in .env.local
+
+# 5. Test appeal generation
+npm run dev
+```
+
+See **[docs/GEMINI_RAG_INTEGRATION.md](./docs/GEMINI_RAG_INTEGRATION.md)** for detailed migration guide.
 
 ## 🎯 Next Steps
 

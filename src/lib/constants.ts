@@ -2,6 +2,9 @@
 // FORM DATA CONSTANTS - Based on Comprehensive Blueprint
 // ============================================================================
 
+import { loadActiveConfig } from './config-loader';
+import type { FormFieldsConfig } from './admin-config-types';
+
 export const APPEAL_TYPES = [
   {
     value: 'inauthenticity-supply-chain',
@@ -331,3 +334,130 @@ export const SUPPORTING_DOCUMENT_TYPES = [
   { value: 'relay-documents', label: 'Amazon Relay Documents (Bill of Sale, Registration, etc.)', category: 'Amazon Relay' },
   { value: 'other', label: 'Other Supporting Document', category: 'General' },
 ] as const;
+
+// ============================================================================
+// DYNAMIC CONFIG LOADERS
+// Load form field configurations from database with fallback to hardcoded
+// ============================================================================
+
+/**
+ * Load form fields configuration from database or fallback to hardcoded
+ */
+export async function getFormFieldsConfig(): Promise<FormFieldsConfig> {
+  try {
+    const config = await loadActiveConfig<FormFieldsConfig>('form-fields');
+
+    if (config?.configData) {
+      console.log('✅ Using form fields from active configuration');
+      return config.configData;
+    }
+  } catch (error) {
+    console.warn('⚠️  Failed to load form fields from config, using fallback:', error);
+  }
+
+  console.log('ℹ️  Using hardcoded fallback form fields');
+  // Return hardcoded config as fallback
+  return {
+    appealTypes: APPEAL_TYPES.map((type, index) => ({
+      value: type.value,
+      label: type.label,
+      enabled: true,
+      order: index + 1,
+    })),
+    rootCauses: Object.entries(ROOT_CAUSES).flatMap(([appealType, causes], typeIndex) =>
+      causes.map((cause, causeIndex) => ({
+        id: `rc-${appealType}-${causeIndex}`,
+        text: cause,
+        appealTypes: [appealType],
+        enabled: true,
+        order: typeIndex * 100 + causeIndex,
+      }))
+    ),
+    correctiveActions: Object.entries(CORRECTIVE_ACTIONS).flatMap(([category, actions], catIndex) =>
+      actions.map((action, actionIndex) => ({
+        id: `ca-${category}-${actionIndex}`,
+        text: action,
+        category,
+        appealTypes: ['*'],
+        enabled: true,
+        order: catIndex * 100 + actionIndex,
+      }))
+    ),
+    preventiveMeasures: Object.entries(PREVENTIVE_MEASURES).flatMap(([category, measures], catIndex) =>
+      measures.map((measure, measureIndex) => ({
+        id: `pm-${category}-${measureIndex}`,
+        text: measure,
+        category,
+        appealTypes: ['*'],
+        enabled: true,
+        order: catIndex * 100 + measureIndex,
+      }))
+    ),
+    supportingDocuments: SUPPORTING_DOCUMENT_TYPES.map((doc, index) => ({
+      value: doc.value,
+      label: doc.label,
+      appealTypes: ['*'],
+      enabled: true,
+      order: index + 1,
+    })),
+  };
+}
+
+/**
+ * Get appeal types only (convenience function)
+ */
+export async function getAppealTypes() {
+  const config = await getFormFieldsConfig();
+  return config.appealTypes.filter(type => type.enabled);
+}
+
+/**
+ * Get root causes for a specific appeal type
+ */
+export async function getRootCauses(appealType?: string) {
+  const config = await getFormFieldsConfig();
+  if (!appealType) {
+    return config.rootCauses.filter(cause => cause.enabled);
+  }
+  return config.rootCauses.filter(
+    cause => cause.enabled && cause.appealTypes.includes(appealType)
+  );
+}
+
+/**
+ * Get corrective actions (optionally filtered by appeal type)
+ */
+export async function getCorrectiveActions(appealType?: string) {
+  const config = await getFormFieldsConfig();
+  if (!appealType) {
+    return config.correctiveActions.filter(action => action.enabled);
+  }
+  return config.correctiveActions.filter(
+    action =>
+      action.enabled &&
+      (action.appealTypes.includes('*') || action.appealTypes.includes(appealType))
+  );
+}
+
+/**
+ * Get preventive measures (optionally filtered by appeal type)
+ */
+export async function getPreventiveMeasures(appealType?: string) {
+  const config = await getFormFieldsConfig();
+  if (!appealType) {
+    return config.preventiveMeasures.filter(measure => measure.enabled);
+  }
+  return config.preventiveMeasures.filter(
+    measure =>
+      measure.enabled &&
+      (measure.appealTypes.includes('*') || measure.appealTypes.includes(appealType))
+  );
+}
+
+/**
+ * Get supporting document types
+ */
+export async function getSupportingDocumentTypes() {
+  const config = await getFormFieldsConfig();
+  return config.supportingDocuments.filter(doc => doc.enabled);
+}
