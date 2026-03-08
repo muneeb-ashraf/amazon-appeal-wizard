@@ -1,0 +1,283 @@
+================================================================================
+VERIFICATION: Amazon Documents Table Integrity
+================================================================================
+
+Table: amazon-documents
+
+Scanning for all documents with embeddings...
+
+✅ Found 46 documents with completed embeddings
+
+--------------------------------------------------------------------------------
+DOCUMENT INTEGRITY CHECK:
+--------------------------------------------------------------------------------
+✅ Escalation II - Mark Hanson - ODR Listing Removal ed (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Escalation II - Mark Hanson - ODR Listing Removal ed (1).docx
+   - Status: completed
+✅ Escalation I - Jennifer Smith - KDP ed (2).docx
+   - Text Content: 5404 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Escalation I - Jennifer Smith - KDP ed (2).docx
+   - Status: completed
+✅ POA US.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA US.docx
+   - Status: completed
+✅ POA I - Tina Perebikosvky Inauthentic - 10-3-2025.docx
+   - Text Content: 5910 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Tina Perebikosvky Inauthentic - 10-3-2025.docx
+   - Status: completed
+✅ POA II - AK - Unsuitable inventory ed (5).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA II - AK - Unsuitable inventory ed (5).docx
+   - Status: completed
+✅ POA I - Paula Guran - Copyright ed (1) (1).docx
+   - Text Content: 7286 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Paula Guran - Copyright ed (1) (1).docx
+   - Status: completed
+✅ Kindpowers, LLC Appeal - SP III.docx
+   - Text Content: 5331 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Kindpowers, LLC Appeal - SP III.docx
+   - Status: completed
+✅ Erica Sutton hacked POA (2).docx
+   - Text Content: 5491 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Erica Sutton hacked POA (2).docx
+   - Status: completed
+✅ Copy of Robert Harvey Appeal used sold as new - 7-29-2020.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Copy of Robert Harvey Appeal used sold as new - 7-29-2020.docx
+   - Status: completed
+✅ Draft POA II- FLOLEAF NATURALS - Restricted product ed.docx
+   - Text Content: 4708 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Draft POA II- FLOLEAF NATURALS - Restricted product ed.docx
+   - Status: completed
+✅ Draft POA II- FLOLEAF NATURALS - Restricted product.docx
+   - Text Content: 4673 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Draft POA II- FLOLEAF NATURALS - Restricted product.docx
+   - Status: completed
+✅ POA I - Adrian Vizireanu. Brand Registry ed (1) (1).docx
+   - Text Content: 3057 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Adrian Vizireanu. Brand Registry ed (1) (1).docx
+   - Status: completed
+✅ POA I - Dimitri Jesse - Merc ed (3).docx
+   - Text Content: 4669 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Dimitri Jesse - Merc ed (3).docx
+   - Status: completed
+✅ POA II - AK - Unsuitable inventory ed (5).docx
+   - Text Content: 8740 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA II - AK - Unsuitable inventory ed (5).docx
+   - Status: completed
+✅ Draft POA I - Maaz Ahmed - Inauthentic rev ed.docx
+   - Text Content: 4248 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Draft POA I - Maaz Ahmed - Inauthentic rev ed.docx
+   - Status: completed
+✅ Erica Sutton hacked POA (2).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Erica Sutton hacked POA (2).docx
+   - Status: completed
+✅ Escalation I - Saarang Ayaz - Inauthenticity ed (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Escalation I - Saarang Ayaz - Inauthenticity ed (1).docx
+   - Status: completed
+✅ POA I - Viking Investments - Verification ed.docx
+   - Text Content: 3325 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Viking Investments - Verification ed.docx
+   - Status: completed
+✅ Funds Appeal I -  Nova777 ed (1) (1).docx
+   - Text Content: 3946 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Funds Appeal I -  Nova777 ed (1) (1).docx
+   - Status: completed
+✅ POA I - Tina Perebikosvky Inauthentic - 10-3-2025.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Tina Perebikosvky Inauthentic - 10-3-2025.docx
+   - Status: completed
+✅ POA I - Kent Jameson - ACX ed (1).docx
+   - Text Content: 3894 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Kent Jameson - ACX ed (1).docx
+   - Status: completed
+✅ Etsy Appeal I - Heartwood Wands. IP ed (3).docx
+   - Text Content: 4251 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Etsy Appeal I - Heartwood Wands. IP ed (3).docx
+   - Status: completed
+✅ POA II - SA - Dropshipping ed (1).docx
+   - Text Content: 4643 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA II - SA - Dropshipping ed (1).docx
+   - Status: completed
+✅ FINAL Iron Brothers Supplements - Letter to US Legal Dept. ed (1).docx
+   - Text Content: 8749 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/FINAL Iron Brothers Supplements - Letter to US Legal Dept. ed (1).docx
+   - Status: completed
+✅ Escalation I - Saarang Ayaz - Inauthenticity ed (1).docx
+   - Text Content: 6532 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Escalation I - Saarang Ayaz - Inauthenticity ed (1).docx
+   - Status: completed
+✅ Jan Pohnan fair pricing IV (2).docx
+   - Text Content: 6607 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Jan Pohnan fair pricing IV (2).docx
+   - Status: completed
+✅ POA I - Carlos Shah - Restricted - 4-1-2024 ed (1).docx
+   - Text Content: 4935 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Carlos Shah - Restricted - 4-1-2024 ed (1).docx
+   - Status: completed
+✅ POA III -Tina Perebikovsky Trademark Infringement - 8-31-2024 ed (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA III -Tina Perebikovsky Trademark Infringement - 8-31-2024 ed (1).docx
+   - Status: completed
+✅ POA III -Tina Perebikovsky Trademark Infringement - 8-31-2024 ed (1).docx
+   - Text Content: 5422 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA III -Tina Perebikovsky Trademark Infringement - 8-31-2024 ed (1).docx
+   - Status: completed
+✅ POA III - FM -  Disease Claims ed (1).docx
+   - Text Content: 4847 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA III - FM -  Disease Claims ed (1).docx
+   - Status: completed
+✅ Kindpowers, LLC Appeal - SP III.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Kindpowers, LLC Appeal - SP III.docx
+   - Status: completed
+✅ POA I - Believegroup - Cancelled Shipments ed (2).docx
+   - Text Content: 5668 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Believegroup - Cancelled Shipments ed (2).docx
+   - Status: completed
+✅ Sanjay Gupta Appeal detail page abuse - 8-31-2020.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Sanjay Gupta Appeal detail page abuse - 8-31-2020.docx
+   - Status: completed
+✅ POA I - Brillias Boutique. Sales Velocity ed (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Brillias Boutique. Sales Velocity ed (1).docx
+   - Status: completed
+✅ POA I - Paula Guran - Copyright ed (1) (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Paula Guran - Copyright ed (1) (1).docx
+   - Status: completed
+✅ POA I - Botir Rustamov ed (1) (1).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Botir Rustamov ed (1) (1).docx
+   - Status: completed
+✅ Draft POA II- FLOLEAF NATURALS - Restricted product ed.docx
+   - Text Content: 4708 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Draft POA II- FLOLEAF NATURALS - Restricted product ed.docx
+   - Status: completed
+✅ POA I - Tina Perebikosvky Inauthentic - 10-3-2025 ed.docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Tina Perebikosvky Inauthentic - 10-3-2025 ed.docx
+   - Status: completed
+✅ POA I - Sandadi Reddy. FBA suspension ed (1) (1).docx
+   - Text Content: 3542 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Sandadi Reddy. FBA suspension ed (1) (1).docx
+   - Status: completed
+✅ Evan Michalski eBay Inauthentic Appeal Draft (2).docx
+   - Text Content: 5245 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Evan Michalski eBay Inauthentic Appeal Draft (2).docx
+   - Status: completed
+✅ POA I - Petru Nedelku - KDP ed (1).docx
+   - Text Content: 3278 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA I - Petru Nedelku - KDP ed (1).docx
+   - Status: completed
+✅ POA II - SA - Dropshipping ed (1).docx
+   - Text Content: 4643 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/POA II - SA - Dropshipping ed (1).docx
+   - Status: completed
+✅ Funds Appeal I -  Nova777 ed (1) (1).docx
+   - Text Content: 3946 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Funds Appeal I -  Nova777 ed (1) (1).docx
+   - Status: completed
+✅ Draft POA I - Maaz Ahmed - Inauthentic ed 1.docx
+   - Text Content: 4187 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Draft POA I - Maaz Ahmed - Inauthentic ed 1.docx
+   - Status: completed
+✅ Evan Michalski eBay Inauthentic Appeal Draft (2).docx
+   - Text Content: 5000 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Evan Michalski eBay Inauthentic Appeal Draft (2).docx
+   - Status: completed
+✅ Sanjay Gupta Appeal detail page abuse - 8-31-2020.docx
+   - Text Content: 6485 chars
+   - Embedding: 1536 dimensions
+   - S3 Key: documents/Sanjay Gupta Appeal detail page abuse - 8-31-2020.docx
+   - Status: completed
+
+================================================================================
+INTEGRITY SUMMARY:
+================================================================================
+Total Documents: 46
+Valid (Ready for Appeal Generation): 46
+Missing Text Content: 0
+Missing/Invalid Embeddings: 0
+
+================================================================================
+COMPARISON WITH HARDCODED TEMPLATE LIST:
+================================================================================
+Hardcoded Template Paths: 39
+Templates Found in DB: 34 / 39
+
+⚠️  Templates in hardcoded list but NOT in DB:
+   - documents/Bianca Boersma Appeal - rev2.docx
+   - documents/BR POA I (1).docx
+   - documents/POA I - GenieMedia ed (10).docx
+   - documents/POA I - Zachary Munoz - Review Manipulation ed (1) (2).docx
+   - documents/Template - EU Design POA.docx
+
+================================================================================
+APPEAL GENERATION STATUS:
+================================================================================
+✅ PASS: Templates are intact and ready for appeal generation
+   46 valid templates with embeddings available
+   Appeal generation will work correctly
+
+--------------------------------------------------------------------------------
+SAMPLE EMBEDDING CHECK:
+--------------------------------------------------------------------------------
+Document: Escalation II - Mark Hanson - ODR Listing Removal ed (1).docx
+Embedding Type: Array
+Embedding Length: 1536 dimensions
+First 5 values: [0.023298092186450958, 0.03517160192131996, 0.014412307180464268, 0.04972323402762413, -0.023065883666276932...]
+Value types: number
+All values are valid numbers: ✅ Yes
+
+================================================================================

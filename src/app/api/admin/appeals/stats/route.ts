@@ -3,6 +3,9 @@ import { getDynamoDbClient, getAdminAppealsTable } from '@/lib/aws-config';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { AdminAppealRecord, AdminAppealStatsResponse } from '@/types';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const dynamodb = getDynamoDbClient();
@@ -52,7 +55,13 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    return NextResponse.json(response);
+    const headers = {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    };
+
+    return NextResponse.json(response, { headers });
   } catch (error) {
     console.error('Error fetching appeal stats:', error);
     return NextResponse.json(

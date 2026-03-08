@@ -18,46 +18,121 @@ export default function TestAppealGenerator({ onTestGenerated }: TestAppealGener
   const [formFieldsVersion, setFormFieldsVersion] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Simplified form data
+  // Simplified form data with all required fields
   const [formData, setFormData] = useState({
     appealType: 'inauthenticity-supply-chain',
     fullName: 'Test Seller',
     storeName: 'Test Store',
+    email: 'test@example.com',
+    sellerId: 'A1234567890TEST',
+    asins: [],
     rootCauses: ['I was operating a Retail Arbitrage model without authorization'],
+    rootCauseDetails: '',
+    unauthorizedSupplier: '',
+    relatedAccountReason: '',
+    categoryRejectionReason: '',
+    detailPageAbuseArea: [],
     correctiveActionsTaken: ['Removed all flagged listings'],
+    correctiveActionsDetails: '',
     preventiveMeasures: ['Will only source from authorized distributors'],
+    preventiveMeasuresDetails: '',
+    uploadedDocuments: [],
   });
 
   const [notes, setNotes] = useState('');
 
+  const [progress, setProgress] = useState(0);
+  const [currentSection, setCurrentSection] = useState('');
+
   const handleGenerate = async () => {
     try {
       setIsGenerating(true);
+      setProgress(0);
+      setCurrentSection('Initializing...');
 
-      const response = await fetch('/api/admin/test/generate', {
+      const sections: string[] = [];
+      const totalSections = 5;
+      const sectionNames = [
+        'Opening & Introduction',
+        'Root Cause Analysis',
+        'Corrective Actions',
+        'Preventive Measures',
+        'Closing & Signature'
+      ];
+
+      // Generate each section sequentially
+      for (let sectionId = 1; sectionId <= totalSections; sectionId++) {
+        const sectionName = sectionNames[sectionId - 1];
+        setCurrentSection(`Generating ${sectionName}... (${sectionId}/${totalSections})`);
+        setProgress(Math.floor(((sectionId - 1) / totalSections) * 100));
+
+        console.log(`🔄 Requesting section ${sectionId}: ${sectionName}`);
+
+        const response = await fetch('/api/generate-appeal-section', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sectionId: sectionId,
+            formData: formData,
+            previousSections: sections,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to generate section ${sectionId}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !data.sectionText) {
+          throw new Error(`Invalid response for section ${sectionId}`);
+        }
+
+        console.log(`✅ Received section ${sectionId}: ${data.characterCount} characters`);
+        sections.push(data.sectionText);
+
+        // Update progress
+        const newProgress = Math.floor((sectionId / totalSections) * 95);
+        setProgress(newProgress);
+      }
+
+      // All sections generated, combine them
+      const fullAppealText = sections.join('\n\n');
+
+      setCurrentSection('Saving test appeal...');
+      setProgress(98);
+
+      // Save to test database
+      const saveResponse = await fetch('/api/admin/test/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           aiInstructionsVersion: aiVersion,
           formFieldsVersion,
           formData,
+          generatedAppeal: fullAppealText,
           notes,
         }),
       });
 
-      const data = await response.json();
+      const saveData = await saveResponse.json();
 
-      if (data.success) {
+      if (saveData.success) {
+        setProgress(100);
+        setCurrentSection('Complete!');
         toast.success('Test appeal generated successfully');
-        onTestGenerated(data.testId, data.generatedAppeal);
+        onTestGenerated(saveData.testId, fullAppealText);
       } else {
-        toast.error(data.error || 'Failed to generate test appeal');
+        throw new Error(saveData.error || 'Failed to save test appeal');
       }
     } catch (error: any) {
       console.error('Error generating test:', error);
-      toast.error('Failed to generate test appeal');
+      toast.error(error.message || 'Failed to generate test appeal');
     } finally {
       setIsGenerating(false);
+      setProgress(0);
+      setCurrentSection('');
     }
   };
 
@@ -211,6 +286,43 @@ export default function TestAppealGenerator({ onTestGenerated }: TestAppealGener
           <span>{isGenerating ? 'Generating...' : 'Generate Test Appeal'}</span>
         </button>
       </div>
+
+      {/* AI Progress Modal */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-300">
+            {/* Animated Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur-lg opacity-50 animate-pulse"></div>
+                <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full p-4">
+                  <svg className="w-12 h-12 text-white animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Message */}
+            <div className="text-center space-y-4">
+              <h3 className="text-2xl font-bold text-gray-900">Crafting Your Appeal</h3>
+              <p className="text-lg text-gray-600 leading-relaxed min-h-[60px]">
+                {currentSection}
+              </p>
+
+              {/* Animated Progress Indicator */}
+              <div className="flex justify-center space-x-2 py-4">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+
+              {/* Percentage indicator */}
+              <p className="text-sm text-gray-400 font-medium">{progress}% Complete</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
