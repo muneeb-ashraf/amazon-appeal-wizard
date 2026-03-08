@@ -453,13 +453,22 @@ KDP/PUBLISHING TERMINOLOGY:
 - Say "publishing catalog", "bookshelf" instead of "inventory"
 - Say "KDP guidelines", "content policy" instead of "listing policies"
 - Example: "I ensure all published CONTENT meets Amazon's guidelines" NOT "I ensure all PRODUCTS meet Amazon's guidelines"
-- Example: "I conduct plagiarism checks on all MANUSCRIPTS before publishing" NOT "I check all PRODUCTS before listing"`,
+- Example: "I conduct plagiarism checks on all MANUSCRIPTS before publishing" NOT "I check all PRODUCTS before listing"
+
+🚨 CRITICAL - DO NOT ADD CLOSING STATEMENTS:
+- DO NOT include "Thank you", "Sincerely", or any closing salutation
+- DO NOT include signature blocks (name, email, seller ID, etc.)
+- DO NOT include requests for reinstatement or appreciation statements
+- Section 5 will handle ALL closing and signature elements
+- END this section immediately after describing the final preventive measure`,
     maxTokens: 1000
   },
   {
     id: 5,
     name: 'Closing & Signature',
-    prompt: `Generate ONLY the closing section of the appeal. Include:
+    prompt: `Generate ONLY the closing section of the appeal. This is a NEW section that comes after the preventive measures section.
+
+Include:
 - Professional closing statement expressing commitment
 - Request for reinstatement/resolution
 - Appreciation for consideration
