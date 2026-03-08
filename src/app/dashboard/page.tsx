@@ -1,5 +1,6 @@
-import AdminDashboardNew from "@/components/AdminDashboardNew";
+import { redirect } from 'next/navigation';
 
 export default function DashboardPage() {
-  return <AdminDashboardNew />;
+  // Redirect to the new admin dashboard
+  redirect('/admin/dashboard');
 }
